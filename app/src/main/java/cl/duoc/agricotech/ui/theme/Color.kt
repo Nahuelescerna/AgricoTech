@@ -9,6 +9,9 @@ val TextoPrincipal = Color(0xFF232323)
 val TextoSecundario = Color(0xFF757575)
 val VioletaTerminos = Color(0xFF5B4AC9)
 
+// Gris de fondo de los chips de rol
+val FondoChip = Color(0xFFF3F3F3)
+
 // Grises de estructura (bordes y divisores)
 val BordeCampo = Color(0xFFE0E0E0)
 val LineaDivisor = Color(0xFFEDEDED)

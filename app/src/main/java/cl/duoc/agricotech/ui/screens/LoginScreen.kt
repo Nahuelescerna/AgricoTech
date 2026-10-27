@@ -54,7 +54,10 @@ import cl.duoc.agricotech.ui.theme.TextoSecundario
 import cl.duoc.agricotech.ui.theme.VioletaTerminos
 
 @Composable
-fun LoginScreen(modifier: Modifier = Modifier) {
+fun LoginScreen(
+    alContinuar: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
     // Estado del formulario: remember guarda el valor entre recomposiciones
     var correo by remember { mutableStateOf("") }
     var contrasena by remember { mutableStateOf("") }
@@ -101,7 +104,7 @@ fun LoginScreen(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(20.dp))
 
         Button(
-            onClick = { /* Paso 2: validar y continuar */ },
+            onClick = alContinuar,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
