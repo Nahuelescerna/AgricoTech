@@ -55,6 +55,7 @@ import cl.duoc.agricotech.ui.viewmodel.LoginViewModel
 @Composable
 fun LoginScreen(
     alCrearCuenta: () -> Unit = {},
+    alContinuar: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = viewModel()
 ) {
@@ -170,7 +171,10 @@ fun LoginScreen(
             titulo = "Sesión iniciada",
             mensaje = "Bienvenido de vuelta a Tecnomundo Connect.",
             textoBoton = "Continuar",
-            alCerrar = viewModel::cerrarConfirmacion
+            alCerrar = {
+                viewModel.cerrarConfirmacion()
+                alContinuar()
+            }
         )
     }
 }

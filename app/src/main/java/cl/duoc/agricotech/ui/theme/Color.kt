@@ -9,7 +9,9 @@ val AzulTexto = Color(0xFF2A55D4)    // texto azul (el de acción no alcanza con
 // --- Entorno agrícola ---
 val VerdeCampo = Color(0xFF4F6F52)   // cultivo, éxito, aceptado
 val Tierra = Color(0xFFA9714B)       // producto sólido / granulado
-val Trigo = Color(0xFFE3B448)        // calificaciones, advertencias suaves
+val Trigo = Color(0xFFE3B448)        // calificaciones (estrellas)
+val TrigoOscuro = Color(0xFF9A6B12)  // cuando el trigo se usa como texto
+val Noche = Color(0xFF3B4A6B)        // turno nocturno
 
 // --- Superficies y texto ---
 val Crema = Color(0xFFFAF8F2)        // fondo de pantalla

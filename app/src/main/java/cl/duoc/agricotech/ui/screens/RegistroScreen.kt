@@ -67,6 +67,7 @@ import cl.duoc.agricotech.ui.viewmodel.RegistroViewModel
 @Composable
 fun RegistroScreen(
     alVolver: () -> Unit,
+    alEntrar: (RolUsuario) -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: RegistroViewModel = viewModel()
 ) {
@@ -191,7 +192,10 @@ fun RegistroScreen(
             titulo = "Cuenta creada",
             mensaje = "Tu cuenta quedó registrada. Ya puedes iniciar sesión con tu correo.",
             textoBoton = "Entendido",
-            alCerrar = viewModel::cerrarConfirmacion
+            alCerrar = {
+                viewModel.cerrarConfirmacion()
+                estado.rol?.let(alEntrar)
+            }
         )
     }
 }
