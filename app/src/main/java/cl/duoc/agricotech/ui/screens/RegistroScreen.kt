@@ -21,6 +21,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -29,40 +31,41 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import cl.duoc.agricotech.domain.model.RolUsuario
+import cl.duoc.agricotech.ui.components.ModalConfirmacion
 import cl.duoc.agricotech.ui.theme.AgricotechTheme
 import cl.duoc.agricotech.ui.theme.Arena
 import cl.duoc.agricotech.ui.theme.AzulAccion
 import cl.duoc.agricotech.ui.theme.Blanco
 import cl.duoc.agricotech.ui.theme.ChipFondo
 import cl.duoc.agricotech.ui.theme.Crema
+import cl.duoc.agricotech.ui.theme.ErrorRojo
 import cl.duoc.agricotech.ui.theme.TextoSecundario
 import cl.duoc.agricotech.ui.theme.Tinta
+import cl.duoc.agricotech.ui.theme.VerdeCampo
+import cl.duoc.agricotech.ui.viewmodel.RegistroViewModel
 
 @Composable
 fun RegistroScreen(
     alVolver: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: RegistroViewModel = viewModel()
 ) {
-    // Datos del formulario; parten vacíos y el rol sin elegir
-    var rolSeleccionado by remember { mutableStateOf<RolUsuario?>(null) }
-    var nombre by remember { mutableStateOf("") }
-    var apellido by remember { mutableStateOf("") }
-    var rut by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var telefono by remember { mutableStateOf("") }
+    val estado by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(
         modifier = modifier
@@ -79,13 +82,22 @@ fun RegistroScreen(
                 .verticalScroll(rememberScrollState())   // evita que los campos se corten con el teclado
                 .padding(horizontal = 24.dp, vertical = 18.dp)
         ) {
-            FilaRoles(seleccionado = rolSeleccionado, alSeleccionar = { rolSeleccionado = it })
+            FilaRoles(
+                seleccionado = estado.rol,
+                alSeleccionar = viewModel::alSeleccionarRol
+            )
+
+            if (estado.errorRol != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                MensajeError(texto = estado.errorRol!!)
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             CampoRegistro(
-                valor = nombre,
-                alCambiar = { nombre = it },
+                valor = estado.nombre,
+                error = estado.errorNombre,
+                alCambiar = viewModel::alCambiarNombre,
                 etiqueta = "Nombre",
                 capitalizacion = KeyboardCapitalization.Words
             )
@@ -93,21 +105,28 @@ fun RegistroScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             CampoRegistro(
-                valor = apellido,
-                alCambiar = { apellido = it },
+                valor = estado.apellido,
+                error = estado.errorApellido,
+                alCambiar = viewModel::alCambiarApellido,
                 etiqueta = "Apellido",
                 capitalizacion = KeyboardCapitalization.Words
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            CampoRegistro(valor = rut, alCambiar = { rut = it }, etiqueta = "RUT")
+            CampoRegistro(
+                valor = estado.rut,
+                error = estado.errorRut,
+                alCambiar = viewModel::alCambiarRut,
+                etiqueta = "RUT"
+            )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             CampoRegistro(
-                valor = email,
-                alCambiar = { email = it },
+                valor = estado.email,
+                error = estado.errorEmail,
+                alCambiar = viewModel::alCambiarEmail,
                 etiqueta = "Email",
                 tipoTeclado = KeyboardType.Email
             )
@@ -115,20 +134,33 @@ fun RegistroScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             CampoRegistro(
-                valor = telefono,
-                alCambiar = { telefono = it },
+                valor = estado.telefono,
+                error = estado.errorTelefono,
+                alCambiar = viewModel::alCambiarTelefono,
                 etiqueta = "Teléfono",
                 tipoTeclado = KeyboardType.Phone
             )
         }
 
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp, vertical = 16.dp)
         ) {
+            FilaTerminos(
+                acepta = estado.aceptaTerminos,
+                alCambiar = viewModel::alCambiarTerminos
+            )
+
+            if (estado.errorTerminos != null) {
+                Spacer(modifier = Modifier.height(6.dp))
+                MensajeError(texto = estado.errorTerminos!!)
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
             Button(
-                onClick = { /* Paso 3: validar y guardar */ },
+                onClick = viewModel::registrar,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp)
@@ -147,6 +179,15 @@ fun RegistroScreen(
                 Text(text = "Registrarse", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
             }
         }
+    }
+
+    if (estado.cuentaCreada) {
+        ModalConfirmacion(
+            titulo = "Cuenta creada",
+            mensaje = "Tu cuenta quedó registrada. Ya puedes iniciar sesión con tu correo.",
+            textoBoton = "Entendido",
+            alCerrar = viewModel::cerrarConfirmacion
+        )
     }
 }
 
@@ -213,10 +254,11 @@ private fun ChipRol(texto: String, activo: Boolean, alTocar: () -> Unit) {
     }
 }
 
-// Campo reutilizable: cambia teclado y capitalización según el dato que recibe
+// Campo reutilizable: cambia teclado, capitalización y mensaje de error según el dato
 @Composable
 private fun CampoRegistro(
     valor: String,
+    error: String?,
     alCambiar: (String) -> Unit,
     etiqueta: String,
     tipoTeclado: KeyboardType = KeyboardType.Text,
@@ -228,6 +270,8 @@ private fun CampoRegistro(
         modifier = Modifier.fillMaxWidth(),
         placeholder = { Text(text = etiqueta, fontSize = 14.sp, color = TextoSecundario) },
         singleLine = true,
+        isError = error != null,
+        supportingText = error?.let { { Text(text = it, color = ErrorRojo, fontSize = 11.5.sp) } },
         shape = RoundedCornerShape(10.dp),
         keyboardOptions = KeyboardOptions(
             keyboardType = tipoTeclado,
@@ -238,9 +282,54 @@ private fun CampoRegistro(
             unfocusedBorderColor = Arena,
             focusedContainerColor = Blanco,
             unfocusedContainerColor = Blanco,
-            cursorColor = AzulAccion
+            cursorColor = AzulAccion,
+            errorBorderColor = ErrorRojo,
+            errorContainerColor = Blanco
         )
     )
+}
+
+@Composable
+private fun MensajeError(texto: String) {
+    Text(
+        text = texto,
+        color = ErrorRojo,
+        fontSize = 11.5.sp
+    )
+}
+
+// Checkbox de términos: es aquí donde el usuario crea la cuenta, no en el login
+@Composable
+private fun FilaTerminos(acepta: Boolean, alCambiar: (Boolean) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Checkbox(
+            checked = acepta,
+            onCheckedChange = alCambiar,
+            colors = CheckboxDefaults.colors(
+                checkedColor = VerdeCampo,
+                uncheckedColor = Arena
+            )
+        )
+
+        Text(
+            text = buildAnnotatedString {
+                withStyle(SpanStyle(color = TextoSecundario)) {
+                    append("Acepto los ")
+                }
+                withStyle(SpanStyle(color = Tinta, fontWeight = FontWeight.SemiBold)) {
+                    append("Términos de servicio")
+                }
+                withStyle(SpanStyle(color = TextoSecundario)) {
+                    append(" y la ")
+                }
+                withStyle(SpanStyle(color = Tinta, fontWeight = FontWeight.SemiBold)) {
+                    append("Política de privacidad")
+                }
+            },
+            fontSize = 11.5.sp,
+            lineHeight = 16.sp
+        )
+    }
 }
 
 @Preview(showBackground = true, widthDp = 412, heightDp = 892)

@@ -20,8 +20,6 @@ fun AppNavHost() {
     NavHost(navController = navController, startDestination = Rutas.LOGIN) {
         composable(Rutas.LOGIN) {
             LoginScreen(
-                // Todavía no existe la pantalla principal: se conecta cuando la creemos
-                alContinuar = {},
                 // navigate apila el registro: la flecha de volver nos devuelve al login
                 alCrearCuenta = { navController.navigate(Rutas.REGISTRO) }
             )
