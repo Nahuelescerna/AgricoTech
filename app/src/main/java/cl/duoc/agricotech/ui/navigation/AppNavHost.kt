@@ -7,6 +7,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import cl.duoc.agricotech.domain.model.RolUsuario
+import cl.duoc.agricotech.ui.screens.CotizacionScreen
+import cl.duoc.agricotech.ui.screens.DetalleSolicitudScreen
 import cl.duoc.agricotech.ui.screens.HomeScreen
 import cl.duoc.agricotech.ui.screens.LoginScreen
 import cl.duoc.agricotech.ui.screens.RegistroScreen
@@ -16,8 +18,13 @@ object Rutas {
     const val LOGIN = "login"
     const val REGISTRO = "registro"
     const val HOME = "home/{rol}"
+    const val DETALLE = "solicitud/{id}/{rol}"
 
     fun home(rol: RolUsuario) = "home/${rol.name}"
+    const val COTIZAR = "cotizar/{id}"
+
+    fun detalle(id: Int, rol: RolUsuario) = "solicitud/$id/${rol.name}"
+    fun cotizar(id: Int) = "cotizar/$id"
 }
 
 @Composable
@@ -61,11 +68,45 @@ fun AppNavHost() {
 
             HomeScreen(
                 rol = rol,
+                alVerDetalle = { solicitud ->
+                    navController.navigate(Rutas.detalle(solicitud.id, rol))
+                },
                 alCerrarSesion = {
                     navController.navigate(Rutas.LOGIN) {
                         popUpTo(navController.graph.id) { inclusive = true }
                     }
                 }
+            )
+        }
+        composable(
+            route = Rutas.DETALLE,
+            arguments = listOf(
+                navArgument("id") { type = NavType.IntType },
+                navArgument("rol") { type = NavType.StringType }
+            )
+        ) { entrada ->
+            val id = entrada.arguments?.getInt("id") ?: 0
+            val rol = entrada.arguments
+                ?.getString("rol")
+                ?.let { valor -> runCatching { RolUsuario.valueOf(valor) }.getOrNull() }
+                ?: RolUsuario.APLICADOR
+
+            DetalleSolicitudScreen(
+                id = id,
+                rol = rol,
+                alVolver = { navController.popBackStack() },
+                alCotizar = { solicitud -> navController.navigate(Rutas.cotizar(solicitud.id)) }
+            )
+        }
+        composable(
+            route = Rutas.COTIZAR,
+            arguments = listOf(navArgument("id") { type = NavType.IntType })
+        ) { entrada ->
+            val id = entrada.arguments?.getInt("id") ?: 0
+
+            CotizacionScreen(
+                id = id,
+                alVolver = { navController.popBackStack() }
             )
         }
     }

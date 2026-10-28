@@ -26,6 +26,7 @@ data class Solicitud(
     val tipoProducto: TipoProducto,
     val turno: Turno,
     val aguaDisponible: Boolean,
+    val obstaculos: String,
     val calificacionProductor: Double,
     val trabajosPublicados: Int
 )

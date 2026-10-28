@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cl.duoc.agricotech.data.repository.SolicitudRepositorio
 import cl.duoc.agricotech.domain.model.RolUsuario
+import cl.duoc.agricotech.domain.model.Solicitud
 import cl.duoc.agricotech.ui.components.TarjetaSolicitud
 import cl.duoc.agricotech.ui.theme.AgricotechTheme
 import cl.duoc.agricotech.ui.theme.Arena
@@ -66,6 +67,7 @@ private enum class FiltroSolicitud(val etiqueta: String) {
 fun HomeScreen(
     rol: RolUsuario,
     alCerrarSesion: () -> Unit = {},
+    alVerDetalle: (Solicitud) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     // Pestaña activa de la barra inferior
@@ -89,7 +91,7 @@ fun HomeScreen(
         ) {
             when (pestana) {
                 0 -> if (rol == RolUsuario.APLICADOR) {
-                    ListaSolicitudes()
+                    ListaSolicitudes(alVerDetalle = alVerDetalle)
                 } else {
                     EstadoVacio(
                         titulo = "Aún no publicas solicitudes",
@@ -110,7 +112,7 @@ fun HomeScreen(
 
 // Lista de solicitudes con los filtros de orden
 @Composable
-private fun ListaSolicitudes() {
+private fun ListaSolicitudes(alVerDetalle: (Solicitud) -> Unit) {
     var filtro by remember { mutableStateOf(FiltroSolicitud.CERCANIA) }
     val solicitudes = remember { SolicitudRepositorio.obtenerSolicitudes() }
 
@@ -156,7 +158,10 @@ private fun ListaSolicitudes() {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(ordenadas, key = { it.id }) { solicitud ->
-                TarjetaSolicitud(solicitud = solicitud)
+                TarjetaSolicitud(
+                    solicitud = solicitud,
+                    alTocar = { alVerDetalle(solicitud) }
+                )
             }
         }
     }
