@@ -14,7 +14,9 @@ import kotlinx.coroutines.flow.update
 data class DetalleSolicitudUiState(
     val solicitud: Solicitud? = null,
     val noEncontrada: Boolean = false,
-    val cotizacion: Cotizacion? = null
+    val cotizacion: Cotizacion? = null,
+    val cantidadPostulaciones: Int = 0,
+    val aceptada: Cotizacion? = null
 )
 
 class DetalleSolicitudViewModel : ViewModel() {
@@ -30,13 +32,21 @@ class DetalleSolicitudViewModel : ViewModel() {
         _uiState.value = DetalleSolicitudUiState(
             solicitud = solicitud,
             noEncontrada = solicitud == null,
-            cotizacion = CotizacionRepositorio.porSolicitud(id)
+            cotizacion = CotizacionRepositorio.porSolicitud(id).firstOrNull { it.aplicador == "Tú" },
+            cantidadPostulaciones = CotizacionRepositorio.porSolicitud(id).size,
+            aceptada = CotizacionRepositorio.aceptadaDe(id)
         )
     }
 
     // Al volver de cotizar se refresca para mostrar la propuesta enviada
     fun refrescar() {
         val id = _uiState.value.solicitud?.id ?: return
-        _uiState.update { it.copy(cotizacion = CotizacionRepositorio.porSolicitud(id)) }
+        _uiState.update {
+            it.copy(
+                cotizacion = CotizacionRepositorio.porSolicitud(id).firstOrNull { c -> c.aplicador == "Tú" },
+                cantidadPostulaciones = CotizacionRepositorio.porSolicitud(id).size,
+                aceptada = CotizacionRepositorio.aceptadaDe(id)
+            )
+        }
     }
 }

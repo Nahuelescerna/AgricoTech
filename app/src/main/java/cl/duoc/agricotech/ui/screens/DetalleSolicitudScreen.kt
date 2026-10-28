@@ -59,6 +59,7 @@ import cl.duoc.agricotech.ui.theme.Crema
 import cl.duoc.agricotech.ui.theme.TextoSecundario
 import cl.duoc.agricotech.ui.theme.Tinta
 import cl.duoc.agricotech.ui.theme.Trigo
+import cl.duoc.agricotech.ui.theme.VerdeCampo
 import cl.duoc.agricotech.ui.viewmodel.DetalleSolicitudViewModel
 
 @Composable
@@ -67,6 +68,7 @@ fun DetalleSolicitudScreen(
     rol: RolUsuario,
     alVolver: () -> Unit,
     alCotizar: (Solicitud) -> Unit = {},
+    alVerPostulaciones: (Int) -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: DetalleSolicitudViewModel = viewModel()
 ) {
@@ -106,7 +108,10 @@ fun DetalleSolicitudScreen(
                 solicitud = solicitud,
                 rol = rol,
                 cotizacion = estado.cotizacion,
-                alCotizar = alCotizar
+                cantidadPostulaciones = estado.cantidadPostulaciones,
+                aceptada = estado.aceptada,
+                alCotizar = alCotizar,
+                alVerPostulaciones = alVerPostulaciones
             )
         }
     }
@@ -117,7 +122,10 @@ private fun ColumnScope.ContenidoDetalle(
     solicitud: Solicitud,
     rol: RolUsuario,
     cotizacion: Cotizacion?,
-    alCotizar: (Solicitud) -> Unit
+    cantidadPostulaciones: Int,
+    aceptada: Cotizacion?,
+    alCotizar: (Solicitud) -> Unit,
+    alVerPostulaciones: (Int) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -263,13 +271,56 @@ private fun ColumnScope.ContenidoDetalle(
                     )
                 }
             }
+        } else if (rol == RolUsuario.PRODUCTOR) {
+            if (cantidadPostulaciones == 0) {
+                Text(
+                    text = "Aún no hay aplicadores postulando. Cuando lleguen, podrás compararlos aquí.",
+                    color = TextoSecundario,
+                    fontSize = 12.5.sp,
+                    lineHeight = 18.sp
+                )
+            } else {
+                if (aceptada != null) {
+                    Text(
+                        text = "Aceptaste la propuesta de ${aceptada.aplicador} por UF ${"%.1f".format(aceptada.total)}.",
+                        color = VerdeCampo,
+                        fontSize = 12.5.sp,
+                        fontWeight = FontWeight.Medium,
+                        lineHeight = 18.sp
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
+
+                Text(
+                    text = "$cantidadPostulaciones aplicadores enviaron su propuesta.",
+                    color = TextoSecundario,
+                    fontSize = 12.5.sp,
+                    lineHeight = 18.sp
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Button(
+                    onClick = { alVerPostulaciones(solicitud.id) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(46.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (aceptada == null) AzulAccion else Blanco,
+                        contentColor = if (aceptada == null) Blanco else Tinta
+                    )
+                ) {
+                    Text(
+                        text = if (aceptada == null) "Comparar propuestas" else "Ver propuestas",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
         } else {
             Text(
-                text = if (rol == RolUsuario.APLICADOR) {
-                    "Todavía no has enviado una cotización para esta solicitud."
-                } else {
-                    "Aún no hay aplicadores postulando. Cuando lleguen, podrás compararlos aquí."
-                },
+                text = "Todavía no has enviado una cotización para esta solicitud.",
                 color = TextoSecundario,
                 fontSize = 12.5.sp,
                 lineHeight = 18.sp

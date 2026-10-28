@@ -62,6 +62,10 @@ class CotizacionViewModel : ViewModel() {
             CotizacionRepositorio.registrar(
                 Cotizacion(
                     idSolicitud = solicitud.id,
+                    aplicador = "Tú",
+                    distanciaKm = 0,
+                    calificacion = 5.0,
+                    especialidad = solicitud.cultivo,
                     tarifaPorHectarea = tarifa ?: 0.0,
                     total = (tarifa ?: 0.0) * hectareas,
                     observacion = _uiState.value.observacion.trim()

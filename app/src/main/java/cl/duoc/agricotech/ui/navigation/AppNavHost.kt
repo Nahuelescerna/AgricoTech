@@ -8,6 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import cl.duoc.agricotech.data.repository.SesionRepositorio
 import cl.duoc.agricotech.domain.model.RolUsuario
+import cl.duoc.agricotech.ui.screens.CompararPostulacionesScreen
 import cl.duoc.agricotech.ui.screens.CotizacionScreen
 import cl.duoc.agricotech.ui.screens.CrearSolicitudScreen
 import cl.duoc.agricotech.ui.screens.DetalleSolicitudScreen
@@ -25,9 +26,11 @@ object Rutas {
     fun home(rol: RolUsuario) = "home/${rol.name}"
     const val COTIZAR = "cotizar/{id}"
     const val CREAR_SOLICITUD = "crear-solicitud"
+    const val POSTULACIONES = "postulaciones/{id}"
 
     fun detalle(id: Int, rol: RolUsuario) = "solicitud/$id/${rol.name}"
     fun cotizar(id: Int) = "cotizar/$id"
+    fun postulaciones(id: Int) = "postulaciones/$id"
 }
 
 @Composable
@@ -99,7 +102,10 @@ fun AppNavHost() {
                 id = id,
                 rol = rol,
                 alVolver = { navController.popBackStack() },
-                alCotizar = { solicitud -> navController.navigate(Rutas.cotizar(solicitud.id)) }
+                alCotizar = { solicitud -> navController.navigate(Rutas.cotizar(solicitud.id)) },
+                alVerPostulaciones = { idSolicitud ->
+                    navController.navigate(Rutas.postulaciones(idSolicitud))
+                }
             )
         }
         composable(
@@ -113,6 +119,18 @@ fun AppNavHost() {
                 alVolver = { navController.popBackStack() }
             )
         }
+        composable(
+            route = Rutas.POSTULACIONES,
+            arguments = listOf(navArgument("id") { type = NavType.IntType })
+        ) { entrada ->
+            val id = entrada.arguments?.getInt("id") ?: 0
+
+            CompararPostulacionesScreen(
+                id = id,
+                alVolver = { navController.popBackStack() }
+            )
+        }
+
         composable(route = Rutas.CREAR_SOLICITUD) {
             CrearSolicitudScreen(
                 alVolver = { navController.popBackStack() }
