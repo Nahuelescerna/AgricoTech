@@ -34,7 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -43,13 +43,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cl.duoc.agricotech.domain.model.RolUsuario
 import cl.duoc.agricotech.ui.theme.AgricotechTheme
-import cl.duoc.agricotech.ui.theme.AzulTecnomundo
-import cl.duoc.agricotech.ui.theme.BordeCampo
-import cl.duoc.agricotech.ui.theme.FondoChip
-import cl.duoc.agricotech.ui.theme.LineaDivisor
-import cl.duoc.agricotech.ui.theme.NegroBoton
-import cl.duoc.agricotech.ui.theme.TextoPrincipal
+import cl.duoc.agricotech.ui.theme.Arena
+import cl.duoc.agricotech.ui.theme.AzulAccion
+import cl.duoc.agricotech.ui.theme.Blanco
+import cl.duoc.agricotech.ui.theme.ChipFondo
+import cl.duoc.agricotech.ui.theme.Crema
 import cl.duoc.agricotech.ui.theme.TextoSecundario
+import cl.duoc.agricotech.ui.theme.Tinta
 
 @Composable
 fun RegistroScreen(
@@ -67,17 +67,17 @@ fun RegistroScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .background(Crema)
             .safeDrawingPadding()
             .imePadding()
-            .background(Color.White)
     ) {
         BarraSuperior(alVolver = alVolver)
 
         Column(
             modifier = Modifier
-                .weight(1f)                                    // ocupa el espacio libre y deja el botón abajo
-                .verticalScroll(rememberScrollState())          // evita que los campos se corten con el teclado
-                .padding(horizontal = 24.dp, vertical = 20.dp)
+                .weight(1f)                             // ocupa el espacio libre y deja el botón abajo
+                .verticalScroll(rememberScrollState())   // evita que los campos se corten con el teclado
+                .padding(horizontal = 24.dp, vertical = 18.dp)
         ) {
             FilaRoles(seleccionado = rolSeleccionado, alSeleccionar = { rolSeleccionado = it })
 
@@ -131,11 +131,17 @@ fun RegistroScreen(
                 onClick = { /* Paso 3: validar y guardar */ },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(8.dp),
+                    .height(52.dp)
+                    .shadow(
+                        elevation = 10.dp,
+                        shape = RoundedCornerShape(10.dp),
+                        ambientColor = AzulAccion,
+                        spotColor = AzulAccion
+                    ),
+                shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = NegroBoton,
-                    contentColor = Color.White
+                    containerColor = AzulAccion,
+                    contentColor = Blanco
                 )
             ) {
                 Text(text = "Registrarse", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
@@ -158,19 +164,19 @@ private fun BarraSuperior(alVolver: () -> Unit) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Volver al login",
-                tint = TextoPrincipal
+                tint = Tinta
             )
         }
 
         Text(
             text = "Crea tu cuenta",
-            color = TextoPrincipal,
-            fontSize = 18.sp,
+            color = Tinta,
+            fontSize = 17.sp,
             fontWeight = FontWeight.Bold
         )
     }
 
-    HorizontalDivider(thickness = 1.dp, color = LineaDivisor)
+    HorizontalDivider(thickness = 1.dp, color = Arena)
 }
 
 // Los dos chips de rol: solo uno puede quedar seleccionado
@@ -192,16 +198,16 @@ private fun ChipRol(texto: String, activo: Boolean, alTocar: () -> Unit) {
     Box(
         modifier = Modifier
             .background(
-                color = if (activo) AzulTecnomundo else FondoChip,
+                color = if (activo) AzulAccion else ChipFondo,
                 shape = RoundedCornerShape(50)   // 50 % = pastilla completamente redondeada
             )
             .clickable(onClick = alTocar)
-            .padding(horizontal = 18.dp, vertical = 12.dp)
+            .padding(horizontal = 16.dp, vertical = 11.dp)
     ) {
         Text(
             text = texto,
-            color = if (activo) Color.White else TextoSecundario,
-            fontSize = 13.sp,
+            color = if (activo) Blanco else TextoSecundario,
+            fontSize = 12.5.sp,
             fontWeight = if (activo) FontWeight.SemiBold else FontWeight.Medium
         )
     }
@@ -222,16 +228,17 @@ private fun CampoRegistro(
         modifier = Modifier.fillMaxWidth(),
         placeholder = { Text(text = etiqueta, fontSize = 14.sp, color = TextoSecundario) },
         singleLine = true,
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(10.dp),
         keyboardOptions = KeyboardOptions(
             keyboardType = tipoTeclado,
             capitalization = capitalizacion
         ),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = AzulTecnomundo,
-            unfocusedBorderColor = BordeCampo,
-            focusedContainerColor = Color.White,
-            unfocusedContainerColor = Color.White
+            focusedBorderColor = AzulAccion,
+            unfocusedBorderColor = Arena,
+            focusedContainerColor = Blanco,
+            unfocusedContainerColor = Blanco,
+            cursorColor = AzulAccion
         )
     )
 }

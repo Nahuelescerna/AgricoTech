@@ -2,16 +2,22 @@ package cl.duoc.agricotech.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Paleta muestreada del mock de Tecnomundo
-val AzulTecnomundo = Color(0xFF3767F4)
-val NegroBoton = Color(0xFF000000)
-val TextoPrincipal = Color(0xFF232323)
-val TextoSecundario = Color(0xFF757575)
-val VioletaTerminos = Color(0xFF5B4AC9)
+// --- Marca ---
+val AzulAccion = Color(0xFF3767F4)   // botones, chip activo, foco
+val AzulTexto = Color(0xFF2A55D4)    // texto azul (el de acción no alcanza contraste sobre crema)
 
-// Gris de fondo de los chips de rol
-val FondoChip = Color(0xFFF3F3F3)
+// --- Entorno agrícola ---
+val VerdeCampo = Color(0xFF4F6F52)   // cultivo, éxito, aceptado
+val Tierra = Color(0xFFA9714B)       // producto sólido / granulado
+val Trigo = Color(0xFFE3B448)        // calificaciones, advertencias suaves
 
-// Grises de estructura (bordes y divisores)
-val BordeCampo = Color(0xFFE0E0E0)
-val LineaDivisor = Color(0xFFEDEDED)
+// --- Superficies y texto ---
+val Crema = Color(0xFFFAF8F2)        // fondo de pantalla
+val Blanco = Color(0xFFFFFFFF)       // tarjetas y campos
+val Arena = Color(0xFFE6E2D8)        // bordes y divisores
+val Tinta = Color(0xFF1F2A24)        // texto principal
+val TextoSecundario = Color(0xFF6F7A70)
+val ChipFondo = Color(0xFFF3F0E8)    // chip sin seleccionar
+
+// --- Estados ---
+val ErrorRojo = Color(0xFFB23A2E)
