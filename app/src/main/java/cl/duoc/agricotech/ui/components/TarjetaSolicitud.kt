@@ -83,21 +83,30 @@ fun TarjetaSolicitud(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Filled.Star,
-                    contentDescription = null,
-                    tint = Trigo,
-                    modifier = Modifier.size(12.dp)
-                )
-
-                Spacer(modifier = Modifier.width(4.dp))
-
+            if (solicitud.trabajosPublicados == 0) {
+                // Solicitud recién publicada: todavía no tiene historial
                 Text(
-                    text = "${solicitud.calificacionProductor} · ${solicitud.trabajosPublicados} trabajos",
+                    text = "Solicitud nueva",
                     color = TextoSecundario,
                     fontSize = 10.5.sp
                 )
+            } else {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Filled.Star,
+                        contentDescription = null,
+                        tint = Trigo,
+                        modifier = Modifier.size(12.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Text(
+                        text = "${solicitud.calificacionProductor} · ${solicitud.trabajosPublicados} trabajos",
+                        color = TextoSecundario,
+                        fontSize = 10.5.sp
+                    )
+                }
             }
         }
     }

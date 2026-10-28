@@ -6,8 +6,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import cl.duoc.agricotech.data.repository.SesionRepositorio
 import cl.duoc.agricotech.domain.model.RolUsuario
 import cl.duoc.agricotech.ui.screens.CotizacionScreen
+import cl.duoc.agricotech.ui.screens.CrearSolicitudScreen
 import cl.duoc.agricotech.ui.screens.DetalleSolicitudScreen
 import cl.duoc.agricotech.ui.screens.HomeScreen
 import cl.duoc.agricotech.ui.screens.LoginScreen
@@ -22,6 +24,7 @@ object Rutas {
 
     fun home(rol: RolUsuario) = "home/${rol.name}"
     const val COTIZAR = "cotizar/{id}"
+    const val CREAR_SOLICITUD = "crear-solicitud"
 
     fun detalle(id: Int, rol: RolUsuario) = "solicitud/$id/${rol.name}"
     fun cotizar(id: Int) = "cotizar/$id"
@@ -36,9 +39,9 @@ fun AppNavHost() {
             LoginScreen(
                 // navigate apila el registro: la flecha de volver nos devuelve al login
                 alCrearCuenta = { navController.navigate(Rutas.REGISTRO) },
-                // Temporal: hasta que Room nos diga el rol del correo, entra como aplicador
+                // Entra con el rol de la última sesión; con Room saldrá del usuario guardado
                 alContinuar = {
-                    navController.navigate(Rutas.home(RolUsuario.APLICADOR)) {
+                    navController.navigate(Rutas.home(SesionRepositorio.rolActual)) {
                         popUpTo(Rutas.LOGIN) { inclusive = true } // el login no queda en la pila
                     }
                 }
@@ -71,6 +74,7 @@ fun AppNavHost() {
                 alVerDetalle = { solicitud ->
                     navController.navigate(Rutas.detalle(solicitud.id, rol))
                 },
+                alCrearSolicitud = { navController.navigate(Rutas.CREAR_SOLICITUD) },
                 alCerrarSesion = {
                     navController.navigate(Rutas.LOGIN) {
                         popUpTo(navController.graph.id) { inclusive = true }
@@ -106,6 +110,11 @@ fun AppNavHost() {
 
             CotizacionScreen(
                 id = id,
+                alVolver = { navController.popBackStack() }
+            )
+        }
+        composable(route = Rutas.CREAR_SOLICITUD) {
+            CrearSolicitudScreen(
                 alVolver = { navController.popBackStack() }
             )
         }

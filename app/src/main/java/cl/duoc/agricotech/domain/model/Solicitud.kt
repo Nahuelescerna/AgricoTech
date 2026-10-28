@@ -27,6 +27,7 @@ data class Solicitud(
     val turno: Turno,
     val aguaDisponible: Boolean,
     val obstaculos: String,
+    val fotos: List<String> = emptyList(),
     val calificacionProductor: Double,
     val trabajosPublicados: Int
 )

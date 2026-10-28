@@ -1,5 +1,6 @@
 package cl.duoc.agricotech.ui.screens
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -47,6 +48,7 @@ import cl.duoc.agricotech.domain.model.RolUsuario
 import cl.duoc.agricotech.domain.model.Solicitud
 import cl.duoc.agricotech.ui.components.ChipDato
 import cl.duoc.agricotech.ui.components.MiniaturaAerea
+import cl.duoc.agricotech.ui.components.MiniaturaFoto
 import cl.duoc.agricotech.ui.components.colorDeProducto
 import cl.duoc.agricotech.ui.components.colorDeTurno
 import cl.duoc.agricotech.ui.theme.AgricotechTheme
@@ -196,6 +198,28 @@ private fun ColumnScope.ContenidoDetalle(
                 etiqueta = "Productor",
                 valor = "${solicitud.calificacionProductor} estrellas · ${solicitud.trabajosPublicados} solicitudes"
             )
+        }
+
+        if (solicitud.fotos.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(
+                text = "Fotos del terreno",
+                color = Tinta,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                solicitud.fotos.forEach { ruta ->
+                    MiniaturaFoto(
+                        uri = Uri.parse(ruta),
+                        modifier = Modifier.size(72.dp)
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(20.dp))

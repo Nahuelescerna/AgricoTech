@@ -3,18 +3,33 @@ package cl.duoc.agricotech.data.repository
 import cl.duoc.agricotech.domain.model.Solicitud
 import cl.duoc.agricotech.domain.model.TipoProducto
 import cl.duoc.agricotech.domain.model.Turno
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 /**
- * Datos ficticios para probar el matching (el caso exige datos sintéticos).
- * Cuando entre Room, esta clase pasa a leer de la base de datos
- * y las pantallas no cambian.
+ * Solicitudes del MVP con datos ficticios (el caso exige datos sintéticos).
+ * Vive en memoria y expone un Flow: cuando el productor publica una,
+ * el home del aplicador se entera sin recargar.
+ * Con Room, esta clase pasa a leer de la base de datos.
  */
 object SolicitudRepositorio {
 
-    fun obtenerSolicitud(id: Int): Solicitud? =
-        obtenerSolicitudes().firstOrNull { it.id == id }
+    private val _solicitudes = MutableStateFlow(solicitudesIniciales())
+    val solicitudes: StateFlow<List<Solicitud>> = _solicitudes.asStateFlow()
 
-    fun obtenerSolicitudes(): List<Solicitud> = listOf(
+    fun obtenerSolicitud(id: Int): Solicitud? =
+        _solicitudes.value.firstOrNull { it.id == id }
+
+    fun agregar(solicitud: Solicitud) {
+        _solicitudes.update { actuales -> actuales + solicitud }
+    }
+
+    // Id correlativo para la solicitud que se acaba de publicar
+    fun siguienteId(): Int = (_solicitudes.value.maxOfOrNull { it.id } ?: 0) + 1
+
+    private fun solicitudesIniciales(): List<Solicitud> = listOf(
         Solicitud(
             id = 1,
             parcela = "Parcela 12 ha · Paltos",

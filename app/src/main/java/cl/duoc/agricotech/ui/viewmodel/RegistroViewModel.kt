@@ -1,6 +1,7 @@
 package cl.duoc.agricotech.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
+import cl.duoc.agricotech.data.repository.SesionRepositorio
 import cl.duoc.agricotech.domain.model.RolUsuario
 import cl.duoc.agricotech.domain.validation.esEmailValido
 import cl.duoc.agricotech.domain.validation.esNombreValido
@@ -113,6 +114,11 @@ class RegistroViewModel : ViewModel() {
             errorRol, errorNombre, errorApellido, errorRut,
             errorEmail, errorTelefono, errorTerminos
         ).all { it == null }
+
+        if (valido) {
+            // Se recuerda el rol para que el próximo login abra su home
+            estado.rol?.let { SesionRepositorio.iniciarSesion(it) }
+        }
 
         _uiState.update {
             it.copy(

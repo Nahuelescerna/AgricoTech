@@ -34,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -68,6 +69,7 @@ fun HomeScreen(
     rol: RolUsuario,
     alCerrarSesion: () -> Unit = {},
     alVerDetalle: (Solicitud) -> Unit = {},
+    alCrearSolicitud: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     // Pestaña activa de la barra inferior
@@ -93,9 +95,9 @@ fun HomeScreen(
                 0 -> if (rol == RolUsuario.APLICADOR) {
                     ListaSolicitudes(alVerDetalle = alVerDetalle)
                 } else {
-                    EstadoVacio(
-                        titulo = "Aún no publicas solicitudes",
-                        mensaje = "Cuando publiques una, los aplicadores de tu zona podrán enviarte cotizaciones."
+                    MisSolicitudes(
+                        alVerDetalle = alVerDetalle,
+                        alCrearSolicitud = alCrearSolicitud
                     )
                 }
 
@@ -110,11 +112,73 @@ fun HomeScreen(
     }
 }
 
+// Pestaña del productor: sus publicaciones + acceso a crear una nueva
+@Composable
+private fun MisSolicitudes(
+    alVerDetalle: (Solicitud) -> Unit,
+    alCrearSolicitud: () -> Unit
+) {
+    val solicitudes by SolicitudRepositorio.solicitudes.collectAsStateWithLifecycle()
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 20.dp)) {
+            Text(
+                text = "Mis solicitudes",
+                color = Tinta,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = "${solicitudes.size} publicadas",
+                color = TextoSecundario,
+                fontSize = 13.sp
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = alCrearSolicitud,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = AzulAccion,
+                    contentColor = Blanco
+                )
+            ) {
+                Text(
+                    text = "Publicar solicitud",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+
+        LazyColumn(
+            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 4.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(solicitudes, key = { it.id }) { solicitud ->
+                TarjetaSolicitud(
+                    solicitud = solicitud,
+                    alTocar = { alVerDetalle(solicitud) }
+                )
+            }
+        }
+    }
+}
+
 // Lista de solicitudes con los filtros de orden
 @Composable
 private fun ListaSolicitudes(alVerDetalle: (Solicitud) -> Unit) {
     var filtro by remember { mutableStateOf(FiltroSolicitud.CERCANIA) }
-    val solicitudes = remember { SolicitudRepositorio.obtenerSolicitudes() }
+
+    // Flow del repositorio: si el productor publica, la lista se actualiza sola
+    val solicitudes by SolicitudRepositorio.solicitudes.collectAsStateWithLifecycle()
 
     // El criterio elegido cambia el orden, no los datos
     val ordenadas = when (filtro) {
