@@ -1,6 +1,7 @@
 package cl.duoc.agricotech.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,7 +14,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -33,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -50,6 +54,7 @@ import cl.duoc.agricotech.ui.components.ModalConfirmacion
 import cl.duoc.agricotech.ui.theme.AgricotechTheme
 import cl.duoc.agricotech.ui.theme.Arena
 import cl.duoc.agricotech.ui.theme.AzulAccion
+import cl.duoc.agricotech.ui.theme.AzulTexto
 import cl.duoc.agricotech.ui.theme.Blanco
 import cl.duoc.agricotech.ui.theme.ChipFondo
 import cl.duoc.agricotech.ui.theme.Crema
@@ -220,35 +225,59 @@ private fun BarraSuperior(alVolver: () -> Unit) {
     HorizontalDivider(thickness = 1.dp, color = Arena)
 }
 
-// Los dos chips de rol: solo uno puede quedar seleccionado
+// Dos opciones grandes con forma de círculo, como tarjetas de selección
 @Composable
 private fun FilaRoles(seleccionado: RolUsuario?, alSeleccionar: (RolUsuario) -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
         RolUsuario.entries.forEach { rol ->
-            ChipRol(
+            OpcionRol(
                 texto = rol.etiqueta,
                 activo = rol == seleccionado,
-                alTocar = { alSeleccionar(rol) }
+                alTocar = { alSeleccionar(rol) },
+                modifier = Modifier.weight(1f)
             )
         }
     }
 }
 
 @Composable
-private fun ChipRol(texto: String, activo: Boolean, alTocar: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .background(
-                color = if (activo) AzulAccion else ChipFondo,
-                shape = RoundedCornerShape(50)   // 50 % = pastilla completamente redondeada
-            )
+private fun OpcionRol(
+    texto: String,
+    activo: Boolean,
+    alTocar: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = alTocar)
-            .padding(horizontal = 16.dp, vertical = 11.dp)
+            .padding(vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Círculo de la opción. Cuando tengamos las fotos, se reemplaza este Box por:
+        // Image(painterResource(R.drawable.foto_productor), contentScale = ContentScale.Crop,
+        //       modifier = Modifier.size(104.dp).clip(CircleShape))
+        Box(
+            modifier = Modifier
+                .size(104.dp)
+                .clip(CircleShape)
+                .background(if (activo) AzulAccion.copy(alpha = 0.14f) else ChipFondo)
+                .border(
+                    width = if (activo) 2.dp else 1.dp,
+                    color = if (activo) AzulAccion else Arena,
+                    shape = CircleShape
+                )
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
         Text(
             text = texto,
-            color = if (activo) Blanco else TextoSecundario,
-            fontSize = 12.5.sp,
+            color = if (activo) AzulTexto else TextoSecundario,
+            fontSize = 13.sp,
             fontWeight = if (activo) FontWeight.SemiBold else FontWeight.Medium
         )
     }
