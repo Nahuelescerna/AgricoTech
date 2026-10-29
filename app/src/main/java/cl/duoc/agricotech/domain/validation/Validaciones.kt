@@ -7,7 +7,8 @@ package cl.duoc.agricotech.domain.validation
  */
 
 private val PATRON_EMAIL = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
-private val PATRON_RUT = Regex("^\\d{7,8}-[0-9K]$")
+// Acepta 12345678-9 o 12.345.678-9 (no se valida el dígito verificador)
+private val PATRON_RUT = Regex("^\\d{7,8}-[0-9Kk]$|^\\d{1,2}\\.\\d{3}\\.\\d{3}-[0-9Kk]$")
 
 fun esEmailValido(correo: String): Boolean = PATRON_EMAIL.matches(correo.trim())
 
@@ -31,42 +32,8 @@ fun esTelefonoValido(telefono: String): Boolean {
 }
 
 /**
- * RUT chileno con dígito verificador (módulo 11).
- * Acepta 12345678-9 y 12.345.678-9; la K puede venir en minúscula.
+ * RUT chileno: solo se valida el formato (7 u 8 dígitos, guion y dígito
+ * verificador). No se comprueba si el RUT existe ni si el dígito es correcto.
  */
-fun esRutValido(rut: String): Boolean {
-    val limpio = rut.replace(".", "").replace(" ", "").uppercase()
-    if (!PATRON_RUT.matches(limpio)) return false
+fun esRutValido(rut: String): Boolean = PATRON_RUT.matches(rut.trim())
 
-    val cuerpo = limpio.substringBefore("-")
-    val digitoVerificador = limpio.substringAfter("-")
-
-    // Se multiplica de derecha a izquierda por 2,3,4,5,6,7 y se cicla
-    var suma = 0
-    var factor = 2
-    for (indice in cuerpo.indices.reversed()) {
-        suma += cuerpo[indice].digitToInt() * factor
-        factor = if (factor == 7) 2 else factor + 1
-    }
-
-    val resto = 11 - (suma % 11)
-    val esperado = when (resto) {
-        11 -> "0"
-        10 -> "K"
-        else -> resto.toString()
-    }
-
-    return esperado == digitoVerificador
-}
-
-// Da formato 12.345.678-9 mientras el usuario escribe
-fun formatearRut(entrada: String): String {
-    val limpio = entrada.uppercase().filter { it.isDigit() || it == 'K' }
-    if (limpio.isEmpty()) return ""
-
-    val cuerpo = limpio.take(8)
-    val digitoVerificador = limpio.drop(8).take(1)
-    val conPuntos = cuerpo.reversed().chunked(3).joinToString(".").reversed()
-
-    return if (digitoVerificador.isEmpty()) conPuntos else "$conPuntos-$digitoVerificador"
-}

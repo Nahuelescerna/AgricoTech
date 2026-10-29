@@ -12,7 +12,6 @@ import cl.duoc.agricotech.domain.validation.esEmailValido
 import cl.duoc.agricotech.domain.validation.esNombreValido
 import cl.duoc.agricotech.domain.validation.esRutValido
 import cl.duoc.agricotech.domain.validation.esTelefonoValido
-import cl.duoc.agricotech.domain.validation.formatearRut
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -64,9 +63,9 @@ class RegistroViewModel(application: Application) : AndroidViewModel(application
         _uiState.update { it.copy(apellido = valor, errorApellido = null) }
     }
 
-    // El RUT se va formateando mientras se escribe
+    // El RUT se guarda tal como lo escribe el usuario, sin formatear
     fun alCambiarRut(valor: String) {
-        _uiState.update { it.copy(rut = formatearRut(valor), errorRut = null) }
+        _uiState.update { it.copy(rut = valor, errorRut = null) }
     }
 
     fun alCambiarEmail(valor: String) {

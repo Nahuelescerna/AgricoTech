@@ -126,7 +126,7 @@ fun RegistroScreen(
                 valor = estado.rut,
                 error = estado.errorRut,
                 alCambiar = viewModel::alCambiarRut,
-                etiqueta = "RUT"
+                etiqueta = "RUT (ej: 12345678-9)"
             )
 
             Spacer(modifier = Modifier.height(12.dp))
