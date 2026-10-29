@@ -106,7 +106,7 @@ fun HomeScreen(
                     mensaje = "El chat se activa cuando aceptas una cotización."
                 )
 
-                else -> Perfil(rol = rol, alCerrarSesion = alCerrarSesion)
+                else -> PerfilScreen(alCerrarSesion = alCerrarSesion)
             }
         }
     }
@@ -286,55 +286,6 @@ private fun EstadoVacio(titulo: String, mensaje: String) {
             lineHeight = 19.sp,
             textAlign = TextAlign.Center
         )
-    }
-}
-
-@Composable
-private fun Perfil(rol: RolUsuario, alCerrarSesion: () -> Unit) {
-    Column(modifier = Modifier.fillMaxSize().padding(24.dp)) {
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Text(
-            text = "Perfil",
-            color = Tinta,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(color = Blanco, shape = RoundedCornerShape(14.dp))
-                .border(width = 1.dp, color = Arena, shape = RoundedCornerShape(14.dp))
-                .padding(18.dp)
-        ) {
-            Text(text = "Rol", color = TextoSecundario, fontSize = 11.5.sp)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = rol.etiqueta,
-                color = Tinta,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = alCerrarSesion,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            shape = RoundedCornerShape(10.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Blanco,
-                contentColor = Tinta
-            )
-        ) {
-            Text(text = "Cerrar sesión", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-        }
     }
 }
 

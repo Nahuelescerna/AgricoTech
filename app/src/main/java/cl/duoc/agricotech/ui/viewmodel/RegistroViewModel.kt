@@ -172,7 +172,7 @@ class RegistroViewModel(application: Application) : AndroidViewModel(application
                 return@launch
             }
 
-            usuarioDao.insertar(
+            val idNuevo = usuarioDao.insertar(
                 UsuarioEntity(
                     nombre = estado.nombre.trim(),
                     apellido = estado.apellido.trim(),
@@ -184,8 +184,10 @@ class RegistroViewModel(application: Application) : AndroidViewModel(application
                 )
             )
 
-            // La sesión recuerda el rol para que el próximo login abra su home
-            estado.rol?.let { SesionRepositorio.iniciarSesion(it) }
+            // La sesión recuerda al usuario recién creado
+            estado.rol?.let {
+                SesionRepositorio.iniciarSesion(id = idNuevo, email = correo, rol = it)
+            }
 
             _uiState.update { it.copy(guardando = false, cuentaCreada = true) }
         }

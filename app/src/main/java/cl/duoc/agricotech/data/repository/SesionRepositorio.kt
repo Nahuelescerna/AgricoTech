@@ -4,17 +4,28 @@ import cl.duoc.agricotech.domain.model.RolUsuario
 
 /**
  * Sesión del usuario dentro de la app.
- * Vive en memoria: recuerda el rol con el que se registró para que el login
- * abra el home correcto. Con Room, el rol saldrá del usuario guardado.
+ * Guarda a quién corresponde la sesión para que el perfil pueda
+ * leer sus datos desde Room.
  */
 object SesionRepositorio {
 
+    private var _usuarioId: Long = 0
+    private var _usuarioEmail: String = ""
     private var _rolActual: RolUsuario = RolUsuario.APLICADOR
 
-    val rolActual: RolUsuario
-        get() = _rolActual
+    val usuarioId: Long get() = _usuarioId
+    val usuarioEmail: String get() = _usuarioEmail
+    val rolActual: RolUsuario get() = _rolActual
 
-    fun iniciarSesion(rol: RolUsuario) {
+    fun iniciarSesion(id: Long, email: String, rol: RolUsuario) {
+        _usuarioId = id
+        _usuarioEmail = email
         _rolActual = rol
+    }
+
+    fun cerrarSesion() {
+        _usuarioId = 0
+        _usuarioEmail = ""
+        _rolActual = RolUsuario.APLICADOR
     }
 }

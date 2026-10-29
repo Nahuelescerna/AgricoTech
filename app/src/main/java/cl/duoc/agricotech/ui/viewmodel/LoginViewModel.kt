@@ -80,8 +80,14 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                 return@launch
             }
 
-            // Se recuerda el rol guardado en la base para abrir el home correcto
-            usuario?.let { SesionRepositorio.iniciarSesion(RolUsuario.valueOf(it.rol)) }
+            // Se recuerda al usuario y su rol para abrir el home y el perfil correctos
+            usuario?.let {
+                SesionRepositorio.iniciarSesion(
+                    id = it.id,
+                    email = it.email,
+                    rol = RolUsuario.valueOf(it.rol)
+                )
+            }
             _uiState.update { it.copy(sesionIniciada = true) }
         }
     }
