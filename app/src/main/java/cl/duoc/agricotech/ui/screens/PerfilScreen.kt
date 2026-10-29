@@ -20,6 +20,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -40,6 +43,7 @@ import cl.duoc.agricotech.ui.theme.ChipFondo
 import cl.duoc.agricotech.ui.theme.Crema
 import cl.duoc.agricotech.ui.theme.TextoSecundario
 import cl.duoc.agricotech.ui.theme.Tinta
+import cl.duoc.agricotech.ui.theme.Trigo
 import cl.duoc.agricotech.ui.viewmodel.PerfilViewModel
 
 @Composable
@@ -160,19 +164,41 @@ fun PerfilScreen(
                     .border(width = 1.dp, color = Arena, shape = RoundedCornerShape(14.dp))
                     .padding(16.dp)
             ) {
-                Text(
-                    text = "Sin calificaciones todavía",
-                    color = Tinta,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Cuando completes tu primer trabajo, el productor podrá calificarte de 1 a 5 estrellas.",
-                    color = TextoSecundario,
-                    fontSize = 11.5.sp,
-                    lineHeight = 16.sp
-                )
+                if (estado.promedio == null) {
+                    Text(
+                        text = "Sin calificaciones todavía",
+                        color = Tinta,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Cuando completes tu primer trabajo, el productor podrá calificarte de 1 a 5 estrellas.",
+                        color = TextoSecundario,
+                        fontSize = 11.5.sp,
+                        lineHeight = 16.sp
+                    )
+                } else {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        repeat(5) { indice ->
+                            Icon(
+                                imageVector = Icons.Filled.Star,
+                                contentDescription = null,
+                                tint = if (indice < (estado.promedio ?: 0.0)) Trigo else Arena,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Text(
+                            text = "${"%.1f".format(estado.promedio)} · ${estado.cantidadCalificaciones} calificaciones",
+                            color = Tinta,
+                            fontSize = 12.5.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
             }
         }
 

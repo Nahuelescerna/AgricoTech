@@ -31,6 +31,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.compose.ui.Alignment
@@ -43,12 +46,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import cl.duoc.agricotech.domain.model.Calificacion
 import cl.duoc.agricotech.domain.model.Cotizacion
 import cl.duoc.agricotech.domain.model.RolUsuario
 import cl.duoc.agricotech.domain.model.Solicitud
 import cl.duoc.agricotech.ui.components.ChipDato
 import cl.duoc.agricotech.ui.components.MiniaturaAerea
 import cl.duoc.agricotech.ui.components.MiniaturaFoto
+import cl.duoc.agricotech.ui.components.ModalCalificacion
 import cl.duoc.agricotech.ui.components.colorDeProducto
 import cl.duoc.agricotech.ui.components.colorDeTurno
 import cl.duoc.agricotech.ui.theme.AgricotechTheme
@@ -73,6 +78,7 @@ fun DetalleSolicitudScreen(
     viewModel: DetalleSolicitudViewModel = viewModel()
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
+    var mostrarCalificacion by remember { mutableStateOf(false) }
 
     // Se pide la solicitud una sola vez cuando cambia el id
     LaunchedEffect(id) { viewModel.cargar(id) }
@@ -110,10 +116,23 @@ fun DetalleSolicitudScreen(
                 cotizacion = estado.cotizacion,
                 cantidadPostulaciones = estado.cantidadPostulaciones,
                 aceptada = estado.aceptada,
+                calificacion = estado.calificacion,
+                alCalificar = { mostrarCalificacion = true },
                 alCotizar = alCotizar,
                 alVerPostulaciones = alVerPostulaciones
             )
         }
+    }
+
+    if (mostrarCalificacion && estado.aceptada != null) {
+        ModalCalificacion(
+            nombreAplicador = estado.aceptada?.aplicador.orEmpty(),
+            alCancelar = { mostrarCalificacion = false },
+            alEnviar = { estrellas, comentario ->
+                viewModel.calificar(estrellas, comentario)
+                mostrarCalificacion = false
+            }
+        )
     }
 }
 
@@ -124,6 +143,8 @@ private fun ColumnScope.ContenidoDetalle(
     cotizacion: Cotizacion?,
     cantidadPostulaciones: Int,
     aceptada: Cotizacion?,
+    calificacion: Calificacion?,
+    alCalificar: () -> Unit,
     alCotizar: (Solicitud) -> Unit,
     alVerPostulaciones: (Int) -> Unit
 ) {
@@ -288,6 +309,61 @@ private fun ColumnScope.ContenidoDetalle(
                         fontWeight = FontWeight.Medium,
                         lineHeight = 18.sp
                     )
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    if (calificacion == null) {
+                        Button(
+                            onClick = alCalificar,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(46.dp),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Blanco,
+                                contentColor = Tinta
+                            )
+                        ) {
+                            Text(
+                                text = "Calificar servicio",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    } else {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(color = Blanco, shape = RoundedCornerShape(12.dp))
+                                .border(width = 1.dp, color = Arena, shape = RoundedCornerShape(12.dp))
+                                .padding(14.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                repeat(5) { indice ->
+                                    Icon(
+                                        imageVector = Icons.Filled.Star,
+                                        contentDescription = null,
+                                        tint = if (indice < calificacion.estrellas) Trigo else Arena,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "Calificaste este servicio",
+                                    color = TextoSecundario,
+                                    fontSize = 11.5.sp
+                                )
+                            }
+                            if (calificacion.comentario.isNotBlank()) {
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = calificacion.comentario,
+                                    color = Tinta,
+                                    fontSize = 12.sp,
+                                    lineHeight = 17.sp
+                                )
+                            }
+                        }
+                    }
                     Spacer(modifier = Modifier.height(10.dp))
                 }
 

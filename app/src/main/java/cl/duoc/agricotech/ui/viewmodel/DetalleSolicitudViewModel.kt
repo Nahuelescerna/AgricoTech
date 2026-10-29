@@ -1,8 +1,11 @@
 package cl.duoc.agricotech.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
+import cl.duoc.agricotech.data.repository.CalificacionRepositorio
 import cl.duoc.agricotech.data.repository.CotizacionRepositorio
+import cl.duoc.agricotech.data.repository.SesionRepositorio
 import cl.duoc.agricotech.data.repository.SolicitudRepositorio
+import cl.duoc.agricotech.domain.model.Calificacion
 import cl.duoc.agricotech.domain.model.Cotizacion
 import cl.duoc.agricotech.domain.model.Solicitud
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +19,8 @@ data class DetalleSolicitudUiState(
     val noEncontrada: Boolean = false,
     val cotizacion: Cotizacion? = null,
     val cantidadPostulaciones: Int = 0,
-    val aceptada: Cotizacion? = null
+    val aceptada: Cotizacion? = null,
+    val calificacion: Calificacion? = null
 )
 
 class DetalleSolicitudViewModel : ViewModel() {
@@ -32,20 +36,38 @@ class DetalleSolicitudViewModel : ViewModel() {
         _uiState.value = DetalleSolicitudUiState(
             solicitud = solicitud,
             noEncontrada = solicitud == null,
-            cotizacion = CotizacionRepositorio.porSolicitud(id).firstOrNull { it.aplicador == "Tú" },
+            cotizacion = CotizacionRepositorio.porSolicitud(id)
+                .firstOrNull { it.aplicador == SesionRepositorio.nombreCompleto },
             cantidadPostulaciones = CotizacionRepositorio.porSolicitud(id).size,
-            aceptada = CotizacionRepositorio.aceptadaDe(id)
+            aceptada = CotizacionRepositorio.aceptadaDe(id),
+            calificacion = CalificacionRepositorio.porSolicitud(id)
         )
     }
 
     // Al volver de cotizar se refresca para mostrar la propuesta enviada
+    // El productor califica al aplicador de la propuesta aceptada
+    fun calificar(estrellas: Int, comentario: String) {
+        val aceptada = _uiState.value.aceptada ?: return
+        val calificacion = Calificacion(
+            idSolicitud = aceptada.idSolicitud,
+            aplicador = aceptada.aplicador,
+            estrellas = estrellas,
+            comentario = comentario
+        )
+
+        CalificacionRepositorio.registrar(calificacion)
+        _uiState.update { it.copy(calificacion = calificacion) }
+    }
+
     fun refrescar() {
         val id = _uiState.value.solicitud?.id ?: return
         _uiState.update {
             it.copy(
-                cotizacion = CotizacionRepositorio.porSolicitud(id).firstOrNull { c -> c.aplicador == "Tú" },
+                cotizacion = CotizacionRepositorio.porSolicitud(id)
+                    .firstOrNull { c -> c.aplicador == SesionRepositorio.nombreCompleto },
                 cantidadPostulaciones = CotizacionRepositorio.porSolicitud(id).size,
-                aceptada = CotizacionRepositorio.aceptadaDe(id)
+                aceptada = CotizacionRepositorio.aceptadaDe(id),
+                calificacion = CalificacionRepositorio.porSolicitud(id)
             )
         }
     }

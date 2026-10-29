@@ -85,6 +85,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                 SesionRepositorio.iniciarSesion(
                     id = it.id,
                     email = it.email,
+                    nombreCompleto = "${it.nombre} ${it.apellido}",
                     rol = RolUsuario.valueOf(it.rol)
                 )
             }

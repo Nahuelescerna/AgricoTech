@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import cl.duoc.agricotech.data.local.AgricoTechDatabase
 import cl.duoc.agricotech.data.local.UsuarioEntity
+import cl.duoc.agricotech.data.repository.CalificacionRepositorio
 import cl.duoc.agricotech.data.repository.SesionRepositorio
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,6 +14,8 @@ import kotlinx.coroutines.launch
 
 data class PerfilUiState(
     val usuario: UsuarioEntity? = null,
+    val promedio: Double? = null,
+    val cantidadCalificaciones: Int = 0,
     val cargando: Boolean = true
 )
 
@@ -37,7 +40,14 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
 
         viewModelScope.launch {
             val usuario = usuarioDao.buscarPorEmail(correo)
-            _uiState.value = PerfilUiState(usuario = usuario, cargando = false)
+            val nombre = SesionRepositorio.nombreCompleto
+
+            _uiState.value = PerfilUiState(
+                usuario = usuario,
+                promedio = CalificacionRepositorio.promedioDe(nombre),
+                cantidadCalificaciones = CalificacionRepositorio.cantidadDe(nombre),
+                cargando = false
+            )
         }
     }
 }

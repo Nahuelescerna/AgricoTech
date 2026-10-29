@@ -2,6 +2,7 @@ package cl.duoc.agricotech.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import cl.duoc.agricotech.data.repository.CotizacionRepositorio
+import cl.duoc.agricotech.data.repository.SesionRepositorio
 import cl.duoc.agricotech.data.repository.SolicitudRepositorio
 import cl.duoc.agricotech.domain.model.Cotizacion
 import cl.duoc.agricotech.domain.model.Solicitud
@@ -62,7 +63,7 @@ class CotizacionViewModel : ViewModel() {
             CotizacionRepositorio.registrar(
                 Cotizacion(
                     idSolicitud = solicitud.id,
-                    aplicador = "Tú",
+                    aplicador = SesionRepositorio.nombreCompleto.ifBlank { "Tú" },
                     distanciaKm = 0,
                     calificacion = 5.0,
                     especialidad = solicitud.cultivo,

@@ -185,7 +185,12 @@ class RegistroViewModel(application: Application) : AndroidViewModel(application
 
             // La sesión recuerda al usuario recién creado
             estado.rol?.let {
-                SesionRepositorio.iniciarSesion(id = idNuevo, email = correo, rol = it)
+                SesionRepositorio.iniciarSesion(
+                    id = idNuevo,
+                    email = correo,
+                    nombreCompleto = "${estado.nombre.trim()} ${estado.apellido.trim()}",
+                    rol = it
+                )
             }
 
             _uiState.update { it.copy(guardando = false, cuentaCreada = true) }
