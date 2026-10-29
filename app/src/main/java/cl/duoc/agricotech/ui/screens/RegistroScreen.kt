@@ -1,9 +1,15 @@
 package cl.duoc.agricotech.ui.screens
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,9 +41,11 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.draw.shadow
@@ -78,6 +86,45 @@ fun RegistroScreen(
     viewModel: RegistroViewModel = viewModel()
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // "Completo" (no "válido"): basta con que el usuario haya llenado todo.
+    // La validez se sigue comprobando al pulsar, para poder mostrar los errores.
+    val formularioCompleto = estado.rol != null &&
+        estado.nombre.isNotBlank() &&
+        estado.apellido.isNotBlank() &&
+        estado.rut.isNotBlank() &&
+        estado.email.isNotBlank() &&
+        estado.telefono.isNotBlank() &&
+        estado.clave.isNotBlank() &&
+        estado.aceptaTerminos
+
+    // El botón se enciende en 250 ms cuando el formulario queda completo
+    val colorFondo by animateColorAsState(
+        targetValue = if (formularioCompleto) AzulAccion else Arena,
+        animationSpec = tween(durationMillis = 250),
+        label = "fondoBoton"
+    )
+
+    val colorTexto by animateColorAsState(
+        targetValue = if (formularioCompleto) Blanco else TextoSecundario,
+        animationSpec = tween(durationMillis = 250),
+        label = "textoBoton"
+    )
+
+    val elevacion by animateDpAsState(
+        targetValue = if (formularioCompleto) 10.dp else 0.dp,
+        animationSpec = tween(durationMillis = 250),
+        label = "sombraBoton"
+    )
+
+    // Se achica un poco al presionar
+    val interaccion = remember { MutableInteractionSource() }
+    val presionado by interaccion.collectIsPressedAsState()
+    val escala by animateFloatAsState(
+        targetValue = if (presionado) 0.98f else 1f,
+        animationSpec = tween(durationMillis = 120),
+        label = "escalaBoton"
+    )
 
     Column(
         modifier = modifier
@@ -187,16 +234,23 @@ fun RegistroScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp)
+                    .graphicsLayer {
+                        scaleX = escala
+                        scaleY = escala
+                    }
                     .shadow(
-                        elevation = 10.dp,
+                        elevation = elevacion,
                         shape = RoundedCornerShape(10.dp),
                         ambientColor = AzulAccion,
                         spotColor = AzulAccion
                     ),
                 shape = RoundedCornerShape(10.dp),
+                interactionSource = interaccion,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = AzulAccion,
-                    contentColor = Blanco
+                    containerColor = colorFondo,
+                    contentColor = colorTexto,
+                    disabledContainerColor = colorFondo,
+                    disabledContentColor = colorTexto
                 )
             ) {
                 Text(
