@@ -1,8 +1,13 @@
 package cl.duoc.agricotech.ui.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import cl.duoc.agricotech.data.local.AgricoTechDatabase
+import cl.duoc.agricotech.data.local.UsuarioEntity
 import cl.duoc.agricotech.data.repository.SesionRepositorio
 import cl.duoc.agricotech.domain.model.RolUsuario
+import cl.duoc.agricotech.domain.security.hashClave
 import cl.duoc.agricotech.domain.validation.esEmailValido
 import cl.duoc.agricotech.domain.validation.esNombreValido
 import cl.duoc.agricotech.domain.validation.esRutValido
@@ -12,10 +17,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 /**
  * Estado completo de la pantalla de registro.
  * Un error en null significa que el campo está correcto.
+ * La contraseña no forma parte de este formulario: se pide en el login.
  */
 data class RegistroUiState(
     val rol: RolUsuario? = null,
@@ -24,6 +31,7 @@ data class RegistroUiState(
     val rut: String = "",
     val email: String = "",
     val telefono: String = "",
+    val clave: String = "",
     val aceptaTerminos: Boolean = false,
     val errorRol: String? = null,
     val errorNombre: String? = null,
@@ -31,11 +39,15 @@ data class RegistroUiState(
     val errorRut: String? = null,
     val errorEmail: String? = null,
     val errorTelefono: String? = null,
+    val errorClave: String? = null,
     val errorTerminos: String? = null,
+    val guardando: Boolean = false,
     val cuentaCreada: Boolean = false
 )
 
-class RegistroViewModel : ViewModel() {
+class RegistroViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val usuarioDao = AgricoTechDatabase.obtener(application).usuarioDao()
 
     private val _uiState = MutableStateFlow(RegistroUiState())
     val uiState: StateFlow<RegistroUiState> = _uiState.asStateFlow()
@@ -63,6 +75,10 @@ class RegistroViewModel : ViewModel() {
 
     fun alCambiarTelefono(valor: String) {
         _uiState.update { it.copy(telefono = valor, errorTelefono = null) }
+    }
+
+    fun alCambiarClave(valor: String) {
+        _uiState.update { it.copy(clave = valor, errorClave = null) }
     }
 
     fun alCambiarTerminos(acepta: Boolean) {
@@ -104,6 +120,12 @@ class RegistroViewModel : ViewModel() {
             else -> null
         }
 
+        val errorClave = when {
+            estado.clave.isEmpty() -> "Crea una contraseña."
+            estado.clave.length < 6 -> "La contraseña debe tener al menos 6 caracteres."
+            else -> null
+        }
+
         val errorTerminos = if (!estado.aceptaTerminos) {
             "Debes aceptar los términos para continuar."
         } else {
@@ -112,13 +134,8 @@ class RegistroViewModel : ViewModel() {
 
         val valido = listOf(
             errorRol, errorNombre, errorApellido, errorRut,
-            errorEmail, errorTelefono, errorTerminos
+            errorEmail, errorTelefono, errorClave, errorTerminos
         ).all { it == null }
-
-        if (valido) {
-            // Se recuerda el rol para que el próximo login abra su home
-            estado.rol?.let { SesionRepositorio.iniciarSesion(it) }
-        }
 
         _uiState.update {
             it.copy(
@@ -131,9 +148,46 @@ class RegistroViewModel : ViewModel() {
                 errorRut = errorRut,
                 errorEmail = errorEmail,
                 errorTelefono = errorTelefono,
-                errorTerminos = errorTerminos,
-                cuentaCreada = valido
+                errorClave = errorClave,
+                errorTerminos = errorTerminos
             )
+        }
+
+        if (!valido) return
+
+        // Se guarda el usuario en Room
+        _uiState.update { it.copy(guardando = true) }
+
+        viewModelScope.launch {
+            val correo = estado.email.trim()
+            val yaExiste = usuarioDao.contarPorEmail(correo) > 0
+
+            if (yaExiste) {
+                _uiState.update {
+                    it.copy(
+                        guardando = false,
+                        errorEmail = "Ese correo ya tiene una cuenta registrada."
+                    )
+                }
+                return@launch
+            }
+
+            usuarioDao.insertar(
+                UsuarioEntity(
+                    nombre = estado.nombre.trim(),
+                    apellido = estado.apellido.trim(),
+                    rut = estado.rut,
+                    email = correo,
+                    telefono = estado.telefono,
+                    rol = estado.rol?.name.orEmpty(),
+                    claveHash = hashClave(estado.clave)
+                )
+            )
+
+            // La sesión recuerda el rol para que el próximo login abra su home
+            estado.rol?.let { SesionRepositorio.iniciarSesion(it) }
+
+            _uiState.update { it.copy(guardando = false, cuentaCreada = true) }
         }
     }
 

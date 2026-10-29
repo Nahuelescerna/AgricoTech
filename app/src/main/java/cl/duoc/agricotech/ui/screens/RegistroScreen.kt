@@ -43,6 +43,8 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -146,6 +148,16 @@ fun RegistroScreen(
                 etiqueta = "Teléfono",
                 tipoTeclado = KeyboardType.Phone
             )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            CampoRegistro(
+                valor = estado.clave,
+                error = estado.errorClave,
+                alCambiar = viewModel::alCambiarClave,
+                etiqueta = "Contraseña",
+                esPassword = true
+            )
         }
 
         Column(
@@ -167,6 +179,7 @@ fun RegistroScreen(
 
             Button(
                 onClick = viewModel::registrar,
+                enabled = !estado.guardando,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp)
@@ -182,7 +195,11 @@ fun RegistroScreen(
                     contentColor = Blanco
                 )
             ) {
-                Text(text = "Registrarse", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                Text(
+                    text = if (estado.guardando) "Guardando…" else "Registrarse",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
         }
     }
@@ -295,7 +312,8 @@ private fun CampoRegistro(
     alCambiar: (String) -> Unit,
     etiqueta: String,
     tipoTeclado: KeyboardType = KeyboardType.Text,
-    capitalizacion: KeyboardCapitalization = KeyboardCapitalization.None
+    capitalizacion: KeyboardCapitalization = KeyboardCapitalization.None,
+    esPassword: Boolean = false
 ) {
     OutlinedTextField(
         value = valor,
@@ -303,13 +321,18 @@ private fun CampoRegistro(
         modifier = Modifier.fillMaxWidth(),
         placeholder = { Text(text = etiqueta, fontSize = 14.sp, color = TextoSecundario) },
         singleLine = true,
+        visualTransformation = if (esPassword) {
+            PasswordVisualTransformation()
+        } else {
+            VisualTransformation.None
+        },
+        keyboardOptions = KeyboardOptions(
+            keyboardType = if (esPassword) KeyboardType.Password else tipoTeclado,
+            capitalization = capitalizacion
+        ),
         isError = error != null,
         supportingText = error?.let { { Text(text = it, color = ErrorRojo, fontSize = 11.5.sp) } },
         shape = RoundedCornerShape(10.dp),
-        keyboardOptions = KeyboardOptions(
-            keyboardType = tipoTeclado,
-            capitalization = capitalizacion
-        ),
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = AzulAccion,
             unfocusedBorderColor = Arena,
