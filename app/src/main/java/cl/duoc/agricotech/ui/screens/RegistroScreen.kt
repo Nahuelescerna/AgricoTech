@@ -1,5 +1,6 @@
 package cl.duoc.agricotech.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -37,6 +38,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -51,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import cl.duoc.agricotech.R
 import cl.duoc.agricotech.domain.model.RolUsuario
 import cl.duoc.agricotech.ui.components.ModalConfirmacion
 import cl.duoc.agricotech.ui.theme.AgricotechTheme
@@ -256,6 +260,7 @@ private fun FilaRoles(seleccionado: RolUsuario?, alSeleccionar: (RolUsuario) -> 
         RolUsuario.entries.forEach { rol ->
             OpcionRol(
                 texto = rol.etiqueta,
+                foto = fotoDe(rol),
                 activo = rol == seleccionado,
                 alTocar = { alSeleccionar(rol) },
                 modifier = Modifier.weight(1f)
@@ -267,6 +272,7 @@ private fun FilaRoles(seleccionado: RolUsuario?, alSeleccionar: (RolUsuario) -> 
 @Composable
 private fun OpcionRol(
     texto: String,
+    foto: Int,
     activo: Boolean,
     alTocar: () -> Unit,
     modifier: Modifier = Modifier
@@ -278,20 +284,25 @@ private fun OpcionRol(
             .padding(vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Círculo de la opción. Cuando tengamos las fotos, se reemplaza este Box por:
-        // Image(painterResource(R.drawable.foto_productor), contentScale = ContentScale.Crop,
-        //       modifier = Modifier.size(104.dp).clip(CircleShape))
+        // Círculo con la ilustración del rol; si está elegido, lleva aro azul
         Box(
             modifier = Modifier
                 .size(104.dp)
                 .clip(CircleShape)
-                .background(if (activo) AzulAccion.copy(alpha = 0.14f) else ChipFondo)
+                .background(color = ChipFondo)
                 .border(
-                    width = if (activo) 2.dp else 1.dp,
+                    width = if (activo) 2.5.dp else 1.dp,
                     color = if (activo) AzulAccion else Arena,
                     shape = CircleShape
                 )
-        )
+        ) {
+            Image(
+                painter = painterResource(id = foto),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -302,6 +313,12 @@ private fun OpcionRol(
             fontWeight = if (activo) FontWeight.SemiBold else FontWeight.Medium
         )
     }
+}
+
+// Ilustración de cada rol (archivos en res/drawable-nodpi)
+private fun fotoDe(rol: RolUsuario): Int = when (rol) {
+    RolUsuario.PRODUCTOR -> R.drawable.foto_productor
+    RolUsuario.APLICADOR -> R.drawable.foto_aplicador
 }
 
 // Campo reutilizable: cambia teclado, capitalización y mensaje de error según el dato

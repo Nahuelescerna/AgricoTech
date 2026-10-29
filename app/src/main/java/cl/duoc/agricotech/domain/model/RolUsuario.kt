@@ -5,6 +5,6 @@ package cl.duoc.agricotech.domain.model
  * [etiqueta] es el texto que se muestra bajo cada opción de la pantalla de registro.
  */
 enum class RolUsuario(val etiqueta: String) {
-    PRODUCTOR("Productor"),
-    APLICADOR("Aplicador")
+    PRODUCTOR("Soy un productor"),
+    APLICADOR("Soy un aplicador")
 }

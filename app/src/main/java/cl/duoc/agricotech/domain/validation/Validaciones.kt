@@ -31,9 +31,6 @@ fun esTelefonoValido(telefono: String): Boolean {
     return nacional.length == 9 && nacional.startsWith("9")
 }
 
-/**
- * RUT chileno: solo se valida el formato (7 u 8 dígitos, guion y dígito
- * verificador). No se comprueba si el RUT existe ni si el dígito es correcto.
- */
+// RUT chileno: solo se valida el formato (7 u 8 dígitos, guion y dígito verificador)
 fun esRutValido(rut: String): Boolean = PATRON_RUT.matches(rut.trim())
 
