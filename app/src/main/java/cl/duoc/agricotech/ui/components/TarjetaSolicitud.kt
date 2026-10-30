@@ -49,7 +49,7 @@ fun TarjetaSolicitud(
             .padding(12.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        MiniaturaAerea(modifier = Modifier.size(64.dp))
+        MiniaturaSolicitud(modifier = Modifier.size(64.dp))
 
         Column(modifier = Modifier.weight(1f)) {
             Text(

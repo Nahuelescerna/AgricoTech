@@ -51,7 +51,7 @@ import cl.duoc.agricotech.domain.model.Cotizacion
 import cl.duoc.agricotech.domain.model.RolUsuario
 import cl.duoc.agricotech.domain.model.Solicitud
 import cl.duoc.agricotech.ui.components.ChipDato
-import cl.duoc.agricotech.ui.components.MiniaturaAerea
+import cl.duoc.agricotech.ui.components.MiniaturaSolicitud
 import cl.duoc.agricotech.ui.components.MiniaturaFoto
 import cl.duoc.agricotech.ui.components.ModalCalificacion
 import cl.duoc.agricotech.ui.components.colorDeProducto
@@ -154,7 +154,7 @@ private fun ColumnScope.ContenidoDetalle(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp, vertical = 16.dp)
     ) {
-        MiniaturaAerea(
+        MiniaturaSolicitud(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(170.dp)
