@@ -300,26 +300,28 @@ private fun BarraNavegacion(rol: RolUsuario, pestana: Int, alCambiar: (Int) -> U
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
+                .padding(vertical = 6.dp)
         ) {
             ItemBarra(
                 seleccionado = pestana == 0,
                 icono = if (esAplicador) Icons.Filled.Search else Icons.AutoMirrored.Filled.List,
                 etiqueta = if (esAplicador) "Explorar" else "Mis solicitudes",
-                alTocar = { alCambiar(0) }
+                alTocar = { alCambiar(0) },
+                modifier = Modifier.weight(1f)
             )
             ItemBarra(
                 seleccionado = pestana == 1,
                 icono = Icons.Filled.Email,
                 etiqueta = "Mensajes",
-                alTocar = { alCambiar(1) }
+                alTocar = { alCambiar(1) },
+                modifier = Modifier.weight(1f)
             )
             ItemBarra(
                 seleccionado = pestana == 2,
                 icono = Icons.Filled.Person,
                 etiqueta = "Perfil",
-                alTocar = { alCambiar(2) }
+                alTocar = { alCambiar(2) },
+                modifier = Modifier.weight(1f)
             )
         }
     }
@@ -330,15 +332,17 @@ private fun ItemBarra(
     seleccionado: Boolean,
     icono: ImageVector,
     etiqueta: String,
-    alTocar: () -> Unit
+    alTocar: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val color = if (seleccionado) AzulAccion else TextoSecundario
 
+    // El ancho lo entrega el Row (weight), así los tres centros quedan parejos
     Column(
-        modifier = Modifier
+        modifier = modifier
             .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = alTocar)
-            .padding(horizontal = 18.dp, vertical = 6.dp),
+            .padding(vertical = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(
@@ -353,8 +357,10 @@ private fun ItemBarra(
         Text(
             text = etiqueta,
             color = color,
-            fontSize = 10.sp,
-            fontWeight = if (seleccionado) FontWeight.SemiBold else FontWeight.Medium
+            fontSize = 9.5.sp,
+            fontWeight = if (seleccionado) FontWeight.SemiBold else FontWeight.Medium,
+            maxLines = 1,
+            textAlign = TextAlign.Center
         )
     }
 }
