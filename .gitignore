@@ -13,3 +13,6 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Carpeta generada por el compilador de Kotlin
+.kotlin/
