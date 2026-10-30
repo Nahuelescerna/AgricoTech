@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.update
  * Solicitudes del MVP con datos ficticios (el caso exige datos sintéticos).
  * Vive en memoria y expone un Flow: cuando el productor publica una,
  * el home del aplicador se entera sin recargar.
- * Con Room, esta clase pasa a leer de la base de datos.
  */
 object SolicitudRepositorio {
 

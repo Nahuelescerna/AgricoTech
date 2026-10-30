@@ -42,7 +42,7 @@ fun AppNavHost() {
             LoginScreen(
                 // navigate apila el registro: la flecha de volver nos devuelve al login
                 alCrearCuenta = { navController.navigate(Rutas.REGISTRO) },
-                // Entra con el rol de la última sesión; con Room saldrá del usuario guardado
+                // Entra con el rol de la última sesión
                 alContinuar = {
                     navController.navigate(Rutas.home(SesionRepositorio.rolActual)) {
                         popUpTo(Rutas.LOGIN) { inclusive = true } // el login no queda en la pila

@@ -17,7 +17,6 @@ import cl.duoc.agricotech.ui.theme.ChipFondo
 
 /**
  * Marcador de "sin foto" para las solicitudes sin imágenes.
- * Cuando el productor adjunte fotos reales, se muestra la primera en su lugar.
  */
 @Composable
 fun MiniaturaSolicitud(modifier: Modifier = Modifier) {

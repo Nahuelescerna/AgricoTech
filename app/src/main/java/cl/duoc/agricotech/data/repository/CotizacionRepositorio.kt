@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.update
 
 /**
  * Cotizaciones de la sesión, con algunas de ejemplo para poder comparar.
- * Vive en memoria: es el paso previo a Room.
  */
 object CotizacionRepositorio {
 
