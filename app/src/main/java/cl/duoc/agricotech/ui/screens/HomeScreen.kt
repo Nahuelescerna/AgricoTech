@@ -1,5 +1,10 @@
 package cl.duoc.agricotech.ui.screens
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -31,9 +36,11 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -41,13 +48,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import cl.duoc.agricotech.data.location.UbicacionLocal
 import cl.duoc.agricotech.domain.model.RolUsuario
 import cl.duoc.agricotech.domain.model.Solicitud
+import cl.duoc.agricotech.domain.model.Ubicacion
 import cl.duoc.agricotech.ui.components.TarjetaSolicitud
 import cl.duoc.agricotech.ui.theme.AgricotechTheme
 import cl.duoc.agricotech.ui.theme.Arena
@@ -59,6 +70,7 @@ import cl.duoc.agricotech.ui.theme.TextoSecundario
 import cl.duoc.agricotech.ui.theme.Tinta
 import cl.duoc.agricotech.ui.viewmodel.HomeUiState
 import cl.duoc.agricotech.ui.viewmodel.HomeViewModel
+import kotlinx.coroutines.launch
 
 /** Criterios de orden de la lista (RNF-04: cercanía, puntaje, especialidad). */
 private enum class FiltroSolicitud(val etiqueta: String) {
@@ -81,6 +93,36 @@ fun HomeScreen(
 
     // Lista y estado de la petición: se cargan una vez al entrar al home
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
+
+    val contexto = LocalContext.current
+    val alcance = rememberCoroutineScope()
+
+    // Se pide ubicación una sola vez: si acepta, la lista se ordena por cercanía real
+    val pedirUbicacion = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permisos ->
+        if (permisos.values.any { it }) {
+            alcance.launch { cargarUbicacion(contexto, viewModel) }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        val concedido = ContextCompat.checkSelfPermission(
+            contexto,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (concedido) {
+            cargarUbicacion(contexto, viewModel)
+        } else {
+            pedirUbicacion.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+        }
+    }
 
     Scaffold(
         modifier = modifier,
@@ -449,4 +491,10 @@ private fun ItemBarra(
             textAlign = TextAlign.Center
         )
     }
+}
+
+// La lectura del GPS puede tardar: corre aparte y no bloquea la lista
+private suspend fun cargarUbicacion(contexto: Context, viewModel: HomeViewModel) {
+    val ubicacion = UbicacionLocal.actual(contexto) ?: return
+    viewModel.actualizarUbicacion(Ubicacion(ubicacion.latitude, ubicacion.longitude))
 }

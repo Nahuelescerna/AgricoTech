@@ -33,7 +33,9 @@ fun SolicitudDto.aDominio(fotos: List<String> = emptyList()): Solicitud = Solici
     obstaculos = obstaculos,
     fotos = fotos,
     calificacionProductor = calificacionProductor,
-    trabajosPublicados = trabajosPublicados
+    trabajosPublicados = trabajosPublicados,
+    latitud = latitud,
+    longitud = longitud
 )
 
 fun CotizacionDto.aDominio(): Cotizacion = Cotizacion(

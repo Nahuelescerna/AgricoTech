@@ -39,6 +39,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -57,8 +58,10 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import cl.duoc.agricotech.data.location.UbicacionLocal
 import cl.duoc.agricotech.domain.model.TipoProducto
 import cl.duoc.agricotech.domain.model.Turno
+import cl.duoc.agricotech.domain.model.Ubicacion
 import cl.duoc.agricotech.ui.components.MiniaturaFoto
 import cl.duoc.agricotech.ui.components.ModalConfirmacion
 import cl.duoc.agricotech.ui.theme.AgricotechTheme
@@ -86,6 +89,13 @@ fun CrearSolicitudScreen(
     // Fotos tomadas con la cámara del teléfono (recurso nativo)
     val fotos = remember { mutableStateListOf<Uri>() }
     var uriPendiente by remember { mutableStateOf<Uri?>(null) }
+
+    // Coordenadas del teléfono: viajan con el POST para que la distancia sea real
+    var ubicacion by remember { mutableStateOf<Ubicacion?>(null) }
+    LaunchedEffect(Unit) {
+        val lectura = UbicacionLocal.actual(contexto) ?: return@LaunchedEffect
+        ubicacion = Ubicacion(lectura.latitude, lectura.longitude)
+    }
 
     val camara = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
@@ -243,7 +253,13 @@ fun CrearSolicitudScreen(
         ) {
             Column {
                 Button(
-                    onClick = { viewModel.publicar(fotos.map { it.toString() }) },
+                    onClick = {
+                        viewModel.publicar(
+                            fotos = fotos.map { it.toString() },
+                            latitud = ubicacion?.latitud,
+                            longitud = ubicacion?.longitud
+                        )
+                    },
                     enabled = !estado.publicando,
                     modifier = Modifier
                         .fillMaxWidth()

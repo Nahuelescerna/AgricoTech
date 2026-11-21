@@ -40,5 +40,7 @@ data class Solicitud(
     val obstaculos: String,
     val fotos: List<String> = emptyList(),
     val calificacionProductor: Double,
-    val trabajosPublicados: Int
+    val trabajosPublicados: Int,
+    val latitud: Double = 0.0,
+    val longitud: Double = 0.0
 )

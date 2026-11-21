@@ -74,7 +74,11 @@ class CrearSolicitudViewModel : ViewModel() {
         _uiState.update { it.copy(comentarios = valor) }
     }
 
-    fun publicar(fotos: List<String> = emptyList()) {
+    fun publicar(
+        fotos: List<String> = emptyList(),
+        latitud: Double? = null,
+        longitud: Double? = null
+    ) {
         val estado = _uiState.value
         val hectareas = estado.hectareas.toIntOrNull()
         val cultivo = estado.cultivo.trim()
@@ -115,8 +119,8 @@ class CrearSolicitudViewModel : ViewModel() {
             parcela = "Parcela ${hectareas ?: 0} ha · $cultivo",
             cultivo = cultivo,
             comuna = "Rancagua",      // ubicación ficticia mientras no usemos el GPS
-            latitud = -34.17,
-            longitud = -70.74,
+            latitud = latitud ?: -34.17,
+            longitud = longitud ?: -70.74,
             distanciaKm = 5,
             hectareas = hectareas ?: 0,
             tipoProducto = estado.tipoProducto,
