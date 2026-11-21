@@ -241,24 +241,41 @@ fun CrearSolicitudScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp, vertical = 16.dp)
         ) {
-            Button(
-                onClick = { viewModel.publicar(fotos.map { it.toString() }) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp)
-                    .shadow(
-                        elevation = 10.dp,
-                        shape = RoundedCornerShape(10.dp),
-                        ambientColor = AzulAccion,
-                        spotColor = AzulAccion
-                    ),
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = AzulAccion,
-                    contentColor = Blanco
-                )
-            ) {
-                Text(text = "Publicar solicitud", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Column {
+                Button(
+                    onClick = { viewModel.publicar(fotos.map { it.toString() }) },
+                    enabled = !estado.publicando,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp)
+                        .shadow(
+                            elevation = 10.dp,
+                            shape = RoundedCornerShape(10.dp),
+                            ambientColor = AzulAccion,
+                            spotColor = AzulAccion
+                        ),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = AzulAccion,
+                        contentColor = Blanco
+                    )
+                ) {
+                    Text(
+                        text = if (estado.publicando) "Publicando…" else "Publicar solicitud",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+
+                // Si la API falla, el formulario queda intacto para reintentar
+                if (estado.errorPublicacion != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = estado.errorPublicacion!!,
+                        color = ErrorRojo,
+                        fontSize = 11.5.sp
+                    )
+                }
             }
         }
     }

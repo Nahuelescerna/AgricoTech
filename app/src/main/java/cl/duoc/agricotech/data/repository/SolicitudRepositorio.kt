@@ -2,7 +2,9 @@ package cl.duoc.agricotech.data.repository
 
 import cl.duoc.agricotech.data.remote.RetrofitCliente
 import cl.duoc.agricotech.data.remote.aDominio
+import cl.duoc.agricotech.data.remote.aDto
 import cl.duoc.agricotech.data.remote.ejecutarLlamada
+import cl.duoc.agricotech.domain.model.NuevaSolicitud
 import cl.duoc.agricotech.domain.model.Solicitud
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -45,15 +47,19 @@ object SolicitudRepositorio {
         solicitud
     }
 
+    /** POST /solicitud: publica y agrega la respuesta al principio de la caché. */
+    suspend fun publicar(nueva: NuevaSolicitud): Result<Solicitud> = ejecutarLlamada {
+        val dto = api.crearSolicitud(nueva.aDto())
+        val solicitud = dto.aDominio(nueva.fotos)
+
+        // Las fotos viven en el teléfono: se recuerdan para el detalle de esta sesión
+        if (nueva.fotos.isNotEmpty()) fotosPorSolicitud[dto.id] = nueva.fotos
+
+        _solicitudes.update { actuales -> listOf(solicitud) + actuales }
+        solicitud
+    }
+
     /** Lectura de la caché: al llegar al detalle la lista del home ya está cargada. */
     fun obtenerSolicitud(id: Int): Solicitud? =
         _solicitudes.value.firstOrNull { it.id == id }
-
-    /** Alta en la caché para que la lista se actualice apenas se publica. */
-    fun agregar(solicitud: Solicitud) {
-        if (solicitud.fotos.isNotEmpty()) fotosPorSolicitud[solicitud.id] = solicitud.fotos
-        _solicitudes.update { actuales -> actuales + solicitud }
-    }
-
-    fun siguienteId(): Int = (_solicitudes.value.maxOfOrNull { it.id } ?: 0) + 1
 }

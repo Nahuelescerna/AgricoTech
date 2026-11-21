@@ -23,7 +23,8 @@ data class DetalleSolicitudUiState(
     val cotizacion: Cotizacion? = null,
     val cantidadPostulaciones: Int = 0,
     val aceptada: Cotizacion? = null,
-    val calificacion: Calificacion? = null
+    val calificacion: Calificacion? = null,
+    val errorCalificacion: String? = null
 )
 
 class DetalleSolicitudViewModel : ViewModel() {
@@ -64,8 +65,17 @@ class DetalleSolicitudViewModel : ViewModel() {
             comentario = comentario
         )
 
-        CalificacionRepositorio.registrar(calificacion)
-        _uiState.update { it.copy(calificacion = calificacion) }
+        viewModelScope.launch {
+            CalificacionRepositorio.registrar(calificacion)
+                .onSuccess {
+                    _uiState.update {
+                        it.copy(calificacion = calificacion, errorCalificacion = null)
+                    }
+                }
+                .onFailure { fallo ->
+                    _uiState.update { it.copy(errorCalificacion = mensajeDeError(fallo)) }
+                }
+        }
     }
 
     fun refrescar() {

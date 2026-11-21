@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.io.IOException
 
 /** Estado de la pantalla de inicio: la lista, si está cargando y si hubo error. */
 data class HomeUiState(
@@ -60,11 +59,4 @@ class HomeViewModel : ViewModel() {
             _cargando.value = false
         }
     }
-
-    private fun mensajeDeError(error: Throwable): String =
-        if (error is IOException) {
-            "Sin conexión. Revisa tu internet e intenta de nuevo."
-        } else {
-            "No pudimos cargar las solicitudes. Inténtalo otra vez."
-        }
 }

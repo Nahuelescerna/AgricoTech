@@ -2,6 +2,7 @@ package cl.duoc.agricotech.data.repository
 
 import cl.duoc.agricotech.data.remote.RetrofitCliente
 import cl.duoc.agricotech.data.remote.aDominio
+import cl.duoc.agricotech.data.remote.aDto
 import cl.duoc.agricotech.data.remote.ejecutarLlamada
 import cl.duoc.agricotech.domain.model.Calificacion
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,11 +29,14 @@ object CalificacionRepositorio {
         remotas
     }
 
-    // Si se vuelve a calificar la misma solicitud, se reemplaza la anterior
-    fun registrar(calificacion: Calificacion) {
+    /** POST /calificacion: envía la calificación y reemplaza la anterior de la solicitud. */
+    suspend fun registrar(calificacion: Calificacion): Result<Calificacion> = ejecutarLlamada {
+        api.crearCalificacion(calificacion.aDto())
+
         _calificaciones.update { actuales ->
             actuales.filterNot { it.idSolicitud == calificacion.idSolicitud } + calificacion
         }
+        calificacion
     }
 
     fun porSolicitud(idSolicitud: Int): Calificacion? =

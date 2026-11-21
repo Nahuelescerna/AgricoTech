@@ -15,5 +15,6 @@ data class Cotizacion(
     val especialidad: String,
     val tarifaPorHectarea: Double,
     val total: Double,
-    val observacion: String
+    val observacion: String,
+    val estado: String = ""
 )

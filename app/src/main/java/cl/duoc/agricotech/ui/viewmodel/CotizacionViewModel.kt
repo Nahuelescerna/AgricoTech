@@ -1,15 +1,18 @@
 package cl.duoc.agricotech.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import cl.duoc.agricotech.data.repository.CalificacionRepositorio
 import cl.duoc.agricotech.data.repository.CotizacionRepositorio
 import cl.duoc.agricotech.data.repository.SesionRepositorio
 import cl.duoc.agricotech.data.repository.SolicitudRepositorio
-import cl.duoc.agricotech.domain.model.Cotizacion
+import cl.duoc.agricotech.domain.model.NuevaCotizacion
 import cl.duoc.agricotech.domain.model.Solicitud
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 /**
  * Estado del formulario de cotización.
@@ -20,6 +23,8 @@ data class CotizacionUiState(
     val tarifa: String = "",
     val observacion: String = "",
     val errorTarifa: String? = null,
+    val enviando: Boolean = false,
+    val errorEnvio: String? = null,
     val cotizacionEnviada: Boolean = false
 )
 
@@ -43,7 +48,7 @@ class CotizacionViewModel : ViewModel() {
         _uiState.update { it.copy(observacion = valor) }
     }
 
-    fun enviar(hectareas: Int): Boolean {
+    fun enviar(hectareas: Int) {
         val tarifa = _uiState.value.tarifa.replace(",", ".").toDoubleOrNull()
 
         val error = when {
@@ -55,28 +60,39 @@ class CotizacionViewModel : ViewModel() {
 
         if (error != null) {
             _uiState.update { it.copy(errorTarifa = error, cotizacionEnviada = false) }
-            return false
+            return
         }
 
-        // Se registra la cotización para que el detalle la muestre al volver
-        _uiState.value.solicitud?.let { solicitud ->
-            CotizacionRepositorio.registrar(
-                Cotizacion(
-                    idSolicitud = solicitud.id,
-                    aplicador = SesionRepositorio.nombreCompleto.ifBlank { "Tú" },
-                    aplicadorCorreo = SesionRepositorio.usuarioEmail,
-                    distanciaKm = 0,
-                    calificacion = 5.0,
-                    especialidad = solicitud.cultivo,
-                    tarifaPorHectarea = tarifa ?: 0.0,
-                    total = (tarifa ?: 0.0) * hectareas,
-                    observacion = _uiState.value.observacion.trim()
-                )
-            )
-        }
+        val solicitud = _uiState.value.solicitud ?: return
+        val correo = SesionRepositorio.usuarioEmail
+        val valorTarifa = tarifa ?: 0.0
 
-        _uiState.update { it.copy(errorTarifa = null, cotizacionEnviada = true) }
-        return true
+        // La calificación viaja con la propuesta para ordenar en "Comparar"
+        val nueva = NuevaCotizacion(
+            idSolicitud = solicitud.id,
+            aplicadorCorreo = correo,
+            aplicadorNombre = SesionRepositorio.nombreCompleto.ifBlank { "Tú" },
+            distanciaKm = 0,
+            calificacion = CalificacionRepositorio.promedioDe(correo) ?: 0.0,
+            especialidad = solicitud.cultivo,
+            tarifaPorHectarea = valorTarifa,
+            total = valorTarifa * hectareas,
+            observacion = _uiState.value.observacion.trim()
+        )
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(enviando = true, errorEnvio = null) }
+
+            CotizacionRepositorio.crear(nueva)
+                .onSuccess {
+                    _uiState.update { it.copy(enviando = false, cotizacionEnviada = true) }
+                }
+                .onFailure { fallo ->
+                    _uiState.update {
+                        it.copy(enviando = false, errorEnvio = mensajeDeError(fallo))
+                    }
+                }
+        }
     }
 
     // Total estimado = tarifa por hectárea * superficie

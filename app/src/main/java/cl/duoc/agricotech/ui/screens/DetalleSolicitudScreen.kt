@@ -62,6 +62,7 @@ import cl.duoc.agricotech.ui.theme.Arena
 import cl.duoc.agricotech.ui.theme.AzulAccion
 import cl.duoc.agricotech.ui.theme.Blanco
 import cl.duoc.agricotech.ui.theme.Crema
+import cl.duoc.agricotech.ui.theme.ErrorRojo
 import cl.duoc.agricotech.ui.theme.TextoSecundario
 import cl.duoc.agricotech.ui.theme.Tinta
 import cl.duoc.agricotech.ui.theme.Trigo
@@ -125,6 +126,7 @@ fun DetalleSolicitudScreen(
                 cantidadPostulaciones = estado.cantidadPostulaciones,
                 aceptada = estado.aceptada,
                 calificacion = estado.calificacion,
+                errorCalificacion = estado.errorCalificacion,
                 alCalificar = { mostrarCalificacion = true },
                 alCotizar = alCotizar,
                 alVerPostulaciones = alVerPostulaciones
@@ -152,6 +154,7 @@ private fun ColumnScope.ContenidoDetalle(
     cantidadPostulaciones: Int,
     aceptada: Cotizacion?,
     calificacion: Calificacion?,
+    errorCalificacion: String?,
     alCalificar: () -> Unit,
     alCotizar: (Solicitud) -> Unit,
     alVerPostulaciones: (Int) -> Unit
@@ -335,6 +338,16 @@ private fun ColumnScope.ContenidoDetalle(
                                 text = "Calificar servicio",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.SemiBold
+                            )
+                        }
+
+                        // Si el POST falla, el botón sigue disponible para reintentar
+                        if (errorCalificacion != null) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = errorCalificacion,
+                                color = ErrorRojo,
+                                fontSize = 11.5.sp
                             )
                         }
                     } else {

@@ -190,28 +190,40 @@ fun CotizacionScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp, vertical = 16.dp)
             ) {
-                Button(
-                    onClick = { viewModel.enviar(solicitud.hectareas) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp)
-                        .shadow(
-                            elevation = 10.dp,
-                            shape = RoundedCornerShape(10.dp),
-                            ambientColor = AzulAccion,
-                            spotColor = AzulAccion
-                        ),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = AzulAccion,
-                        contentColor = Blanco
-                    )
-                ) {
-                    Text(
-                        text = "Enviar cotización",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                Column {
+                    Button(
+                        onClick = { viewModel.enviar(solicitud.hectareas) },
+                        enabled = !estado.enviando,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp)
+                            .shadow(
+                                elevation = 10.dp,
+                                shape = RoundedCornerShape(10.dp),
+                                ambientColor = AzulAccion,
+                                spotColor = AzulAccion
+                            ),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = AzulAccion,
+                            contentColor = Blanco
+                        )
+                    ) {
+                        Text(
+                            text = if (estado.enviando) "Enviando…" else "Enviar cotización",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+
+                    if (estado.errorEnvio != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = estado.errorEnvio!!,
+                            color = ErrorRojo,
+                            fontSize = 11.5.sp
+                        )
+                    }
                 }
             }
         }

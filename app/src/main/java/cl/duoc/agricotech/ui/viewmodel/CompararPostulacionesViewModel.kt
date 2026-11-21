@@ -1,6 +1,7 @@
 package cl.duoc.agricotech.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import cl.duoc.agricotech.data.repository.CotizacionRepositorio
 import cl.duoc.agricotech.data.repository.SolicitudRepositorio
 import cl.duoc.agricotech.domain.model.Cotizacion
@@ -9,11 +10,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 data class CompararUiState(
     val solicitud: Solicitud? = null,
     val propuestas: List<Cotizacion> = emptyList(),
     val aceptada: Cotizacion? = null,
+    val aceptando: Boolean = false,
+    val error: String? = null,
     val mostrarConfirmacion: Boolean = false
 )
 
@@ -36,9 +40,27 @@ class CompararPostulacionesViewModel : ViewModel() {
         )
     }
 
+    // Aceptar guarda el estado en la API, así no se pierde al reiniciar la app
     fun aceptar(cotizacion: Cotizacion) {
-        CotizacionRepositorio.aceptar(cotizacion)
-        _uiState.update { it.copy(aceptada = cotizacion, mostrarConfirmacion = true) }
+        if (_uiState.value.aceptando) return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(aceptando = true, error = null) }
+
+            CotizacionRepositorio.aceptar(cotizacion)
+                .onSuccess { actualizada ->
+                    _uiState.update {
+                        it.copy(
+                            aceptada = actualizada,
+                            aceptando = false,
+                            mostrarConfirmacion = true
+                        )
+                    }
+                }
+                .onFailure { fallo ->
+                    _uiState.update { it.copy(aceptando = false, error = mensajeDeError(fallo)) }
+                }
+        }
     }
 
     fun cerrarConfirmacion() {

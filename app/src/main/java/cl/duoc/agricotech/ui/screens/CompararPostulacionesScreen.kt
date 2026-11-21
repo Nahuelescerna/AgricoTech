@@ -46,6 +46,7 @@ import cl.duoc.agricotech.ui.theme.AzulAccion
 import cl.duoc.agricotech.ui.theme.Blanco
 import cl.duoc.agricotech.ui.theme.ChipFondo
 import cl.duoc.agricotech.ui.theme.Crema
+import cl.duoc.agricotech.ui.theme.ErrorRojo
 import cl.duoc.agricotech.ui.theme.TextoSecundario
 import cl.duoc.agricotech.ui.theme.Tinta
 import cl.duoc.agricotech.ui.theme.Trigo
@@ -70,6 +71,16 @@ fun CompararPostulacionesScreen(
             .safeDrawingPadding()
     ) {
         BarraComparar(alVolver = alVolver)
+
+        // Si el PATCH falla, el mensaje queda a la vista y la propuesta no se marca
+        if (estado.error != null) {
+            Text(
+                text = estado.error!!,
+                color = ErrorRojo,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+            )
+        }
 
         if (estado.solicitud == null) {
             Box(modifier = Modifier.fillMaxSize())
@@ -104,7 +115,7 @@ fun CompararPostulacionesScreen(
                     Spacer(modifier = Modifier.height(6.dp))
                 }
 
-                items(estado.propuestas, key = { it.aplicador }) { propuesta ->
+                items(estado.propuestas, key = { it.id }) { propuesta ->
                     val esMejor = propuesta == estado.propuestas.firstOrNull()
                     val estaAceptada = estado.aceptada?.aplicador == propuesta.aplicador
 
@@ -123,7 +134,7 @@ fun CompararPostulacionesScreen(
         ModalConfirmacion(
             titulo = "Propuesta aceptada",
             mensaje = "Aceptaste la propuesta de ${estado.aceptada?.aplicador}. " +
-                "El chat entre ambos se habilitará cuando esté implementado.",
+                "El aplicador verá que su propuesta fue aceptada.",
             textoBoton = "Entendido",
             alCerrar = { viewModel.cerrarConfirmacion() }
         )
