@@ -7,6 +7,7 @@ package cl.duoc.agricotech.domain.model
 data class Calificacion(
     val idSolicitud: Int,
     val aplicador: String,
+    val aplicadorCorreo: String = "",
     val estrellas: Int,
     val comentario: String
 )

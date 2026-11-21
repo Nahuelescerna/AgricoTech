@@ -64,6 +64,7 @@ class CotizacionViewModel : ViewModel() {
                 Cotizacion(
                     idSolicitud = solicitud.id,
                     aplicador = SesionRepositorio.nombreCompleto.ifBlank { "Tú" },
+                    aplicadorCorreo = SesionRepositorio.usuarioEmail,
                     distanciaKm = 0,
                     calificacion = 5.0,
                     especialidad = solicitud.cultivo,

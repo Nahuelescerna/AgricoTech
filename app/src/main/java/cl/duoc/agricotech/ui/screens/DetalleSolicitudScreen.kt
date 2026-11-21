@@ -24,6 +24,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -97,6 +98,13 @@ fun DetalleSolicitudScreen(
         val solicitud = estado.solicitud
 
         when {
+            estado.cargando -> Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = AzulAccion)
+            }
+
             estado.noEncontrada -> Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center

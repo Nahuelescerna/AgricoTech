@@ -22,15 +22,15 @@ object Rutas {
     const val REGISTRO = "registro"
     const val HOME = "home/{rol}"
     const val DETALLE = "solicitud/{id}/{rol}"
-
-    fun home(rol: RolUsuario) = "home/${rol.name}"
     const val COTIZAR = "cotizar/{id}"
     const val CREAR_SOLICITUD = "crear-solicitud"
     const val POSTULACIONES = "postulaciones/{id}"
 
+    fun home(rol: RolUsuario) = "home/${rol.name}"
     fun detalle(id: Int, rol: RolUsuario) = "solicitud/$id/${rol.name}"
     fun cotizar(id: Int) = "cotizar/$id"
     fun postulaciones(id: Int) = "postulaciones/$id"
+
 }
 
 @Composable

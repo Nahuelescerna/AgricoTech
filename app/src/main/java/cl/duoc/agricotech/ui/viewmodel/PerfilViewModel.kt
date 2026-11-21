@@ -40,12 +40,11 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
 
         viewModelScope.launch {
             val usuario = usuarioDao.buscarPorEmail(correo)
-            val nombre = SesionRepositorio.nombreCompleto
 
             _uiState.value = PerfilUiState(
                 usuario = usuario,
-                promedio = CalificacionRepositorio.promedioDe(nombre),
-                cantidadCalificaciones = CalificacionRepositorio.cantidadDe(nombre),
+                promedio = CalificacionRepositorio.promedioDe(correo),
+                cantidadCalificaciones = CalificacionRepositorio.cantidadDe(correo),
                 cargando = false
             )
         }

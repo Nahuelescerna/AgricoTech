@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serializacion)
     alias(libs.plugins.ksp)
 }
 
@@ -45,6 +46,12 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
+
+    // API externa (Xano) y serialización del JSON de las respuestas
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.serializacion)
+    implementation(libs.okhttp)
+    implementation(libs.kotlinx.serializacion.json)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

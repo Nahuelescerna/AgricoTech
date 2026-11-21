@@ -1,5 +1,8 @@
 package cl.duoc.agricotech.data.repository
 
+import cl.duoc.agricotech.data.remote.RetrofitCliente
+import cl.duoc.agricotech.data.remote.aDominio
+import cl.duoc.agricotech.data.remote.ejecutarLlamada
 import cl.duoc.agricotech.domain.model.Calificacion
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -7,13 +10,23 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 /**
- * Calificaciones de la sesión (en memoria, igual que las cotizaciones).
- * El promedio se calcula sobre las estrellas recibidas por cada aplicador.
+ * Calificaciones respaldadas por la API de Xano.
+ * El promedio se calcula sobre las estrellas recibidas por cada aplicador,
+ * identificado por su correo.
  */
 object CalificacionRepositorio {
 
+    private val api = RetrofitCliente.api
+
     private val _calificaciones = MutableStateFlow<List<Calificacion>>(emptyList())
     val calificaciones: StateFlow<List<Calificacion>> = _calificaciones.asStateFlow()
+
+    /** GET /calificacion: todas las calificaciones registradas en el servidor. */
+    suspend fun sincronizar(): Result<List<Calificacion>> = ejecutarLlamada {
+        val remotas = api.listarCalificaciones().map { it.aDominio() }
+        _calificaciones.value = remotas
+        remotas
+    }
 
     // Si se vuelve a calificar la misma solicitud, se reemplaza la anterior
     fun registrar(calificacion: Calificacion) {
@@ -25,12 +38,16 @@ object CalificacionRepositorio {
     fun porSolicitud(idSolicitud: Int): Calificacion? =
         _calificaciones.value.firstOrNull { it.idSolicitud == idSolicitud }
 
-    fun promedioDe(aplicador: String): Double? {
-        val recibidas = _calificaciones.value.filter { it.aplicador == aplicador }
+    fun promedioDe(aplicadorCorreo: String): Double? {
+        val recibidas = _calificaciones.value.filter {
+            it.aplicadorCorreo.equals(aplicadorCorreo, ignoreCase = true)
+        }
         if (recibidas.isEmpty()) return null
         return recibidas.map { it.estrellas }.average()
     }
 
-    fun cantidadDe(aplicador: String): Int =
-        _calificaciones.value.count { it.aplicador == aplicador }
+    fun cantidadDe(aplicadorCorreo: String): Int =
+        _calificaciones.value.count {
+            it.aplicadorCorreo.equals(aplicadorCorreo, ignoreCase = true)
+        }
 }

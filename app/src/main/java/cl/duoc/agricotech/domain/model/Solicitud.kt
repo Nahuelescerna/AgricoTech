@@ -3,13 +3,24 @@ package cl.duoc.agricotech.domain.model
 /** Tipo de producto que se va a aplicar en el campo. */
 enum class TipoProducto(val etiqueta: String) {
     LIQUIDO("Líquido"),
-    SOLIDO("Granulado")
+    SOLIDO("Granulado");
+
+    companion object {
+        // La API entrega texto libre: si llega algo desconocido se usa el valor por defecto
+        fun desde(valor: String): TipoProducto =
+            entries.firstOrNull { it.name.equals(valor, ignoreCase = true) } ?: LIQUIDO
+    }
 }
 
 /** Turno en que el productor necesita el servicio. */
 enum class Turno(val etiqueta: String) {
     DIURNO("Diurno"),
-    NOCTURNO("Nocturno")
+    NOCTURNO("Nocturno");
+
+    companion object {
+        fun desde(valor: String): Turno =
+            entries.firstOrNull { it.name.equals(valor, ignoreCase = true) } ?: DIURNO
+    }
 }
 
 /**

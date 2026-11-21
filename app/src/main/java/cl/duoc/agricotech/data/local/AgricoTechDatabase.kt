@@ -16,7 +16,7 @@ abstract class AgricoTechDatabase : RoomDatabase() {
 
     companion object {
         // Una sola instancia para toda la app: abrir la base es caro
-            @Volatile
+        @Volatile
         private var instancia: AgricoTechDatabase? = null
 
         fun obtener(contexto: Context): AgricoTechDatabase =

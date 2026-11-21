@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
@@ -35,6 +36,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,7 +46,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import cl.duoc.agricotech.data.repository.SolicitudRepositorio
 import cl.duoc.agricotech.domain.model.RolUsuario
 import cl.duoc.agricotech.domain.model.Solicitud
 import cl.duoc.agricotech.ui.components.TarjetaSolicitud
@@ -56,6 +57,8 @@ import cl.duoc.agricotech.ui.theme.ChipFondo
 import cl.duoc.agricotech.ui.theme.Crema
 import cl.duoc.agricotech.ui.theme.TextoSecundario
 import cl.duoc.agricotech.ui.theme.Tinta
+import cl.duoc.agricotech.ui.viewmodel.HomeUiState
+import cl.duoc.agricotech.ui.viewmodel.HomeViewModel
 
 /** Criterios de orden de la lista (RNF-04: cercanía, puntaje, especialidad). */
 private enum class FiltroSolicitud(val etiqueta: String) {
@@ -70,10 +73,14 @@ fun HomeScreen(
     alCerrarSesion: () -> Unit = {},
     alVerDetalle: (Solicitud) -> Unit = {},
     alCrearSolicitud: () -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: HomeViewModel = viewModel()
 ) {
     // Pestaña activa de la barra inferior
     var pestana by remember { mutableStateOf(0) }
+
+    // Lista y estado de la petición: se cargan una vez al entrar al home
+    val estado by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = modifier,
@@ -93,9 +100,15 @@ fun HomeScreen(
         ) {
             when (pestana) {
                 0 -> if (rol == RolUsuario.APLICADOR) {
-                    ListaSolicitudes(alVerDetalle = alVerDetalle)
+                    ListaSolicitudes(
+                        estado = estado,
+                        alReintentar = viewModel::cargar,
+                        alVerDetalle = alVerDetalle
+                    )
                 } else {
                     MisSolicitudes(
+                        estado = estado,
+                        alReintentar = viewModel::cargar,
                         alVerDetalle = alVerDetalle,
                         alCrearSolicitud = alCrearSolicitud
                     )
@@ -115,11 +128,11 @@ fun HomeScreen(
 // Pestaña del productor: sus publicaciones + acceso a crear una nueva
 @Composable
 private fun MisSolicitudes(
+    estado: HomeUiState,
+    alReintentar: () -> Unit,
     alVerDetalle: (Solicitud) -> Unit,
     alCrearSolicitud: () -> Unit
 ) {
-    val solicitudes by SolicitudRepositorio.solicitudes.collectAsStateWithLifecycle()
-
     Column(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 20.dp)) {
             Text(
@@ -132,7 +145,7 @@ private fun MisSolicitudes(
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = "${solicitudes.size} publicadas",
+                text = "${estado.solicitudes.size} publicadas",
                 color = TextoSecundario,
                 fontSize = 13.sp
             )
@@ -158,33 +171,35 @@ private fun MisSolicitudes(
             }
         }
 
-        LazyColumn(
-            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(solicitudes, key = { it.id }) { solicitud ->
-                TarjetaSolicitud(
-                    solicitud = solicitud,
-                    alTocar = { alVerDetalle(solicitud) }
-                )
-            }
+        // El listado ocupa el resto de la pantalla y resuelve carga o error
+        Box(modifier = Modifier.weight(1f)) {
+            ListadoSolicitudes(
+                cargando = estado.cargando,
+                error = estado.error,
+                solicitudes = estado.solicitudes,
+                alReintentar = alReintentar,
+                alVerDetalle = alVerDetalle,
+                vacioTitulo = "Aún no publicas nada",
+                vacioMensaje = "Publica tu primera solicitud para recibir cotizaciones."
+            )
         }
     }
 }
 
 // Lista de solicitudes con los filtros de orden
 @Composable
-private fun ListaSolicitudes(alVerDetalle: (Solicitud) -> Unit) {
+private fun ListaSolicitudes(
+    estado: HomeUiState,
+    alReintentar: () -> Unit,
+    alVerDetalle: (Solicitud) -> Unit
+) {
     var filtro by remember { mutableStateOf(FiltroSolicitud.CERCANIA) }
-
-    // Flow del repositorio: si el productor publica, la lista se actualiza sola
-    val solicitudes by SolicitudRepositorio.solicitudes.collectAsStateWithLifecycle()
 
     // El criterio elegido cambia el orden, no los datos
     val ordenadas = when (filtro) {
-        FiltroSolicitud.CERCANIA -> solicitudes.sortedBy { it.distanciaKm }
-        FiltroSolicitud.PUNTAJE -> solicitudes.sortedByDescending { it.calificacionProductor }
-        FiltroSolicitud.CULTIVO -> solicitudes.sortedBy { it.cultivo }
+        FiltroSolicitud.CERCANIA -> estado.solicitudes.sortedBy { it.distanciaKm }
+        FiltroSolicitud.PUNTAJE -> estado.solicitudes.sortedByDescending { it.calificacionProductor }
+        FiltroSolicitud.CULTIVO -> estado.solicitudes.sortedBy { it.cultivo }
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -217,16 +232,87 @@ private fun ListaSolicitudes(alVerDetalle: (Solicitud) -> Unit) {
             }
         }
 
-        LazyColumn(
+        Box(modifier = Modifier.weight(1f)) {
+            ListadoSolicitudes(
+                cargando = estado.cargando,
+                error = estado.error,
+                solicitudes = ordenadas,
+                alReintentar = alReintentar,
+                alVerDetalle = alVerDetalle,
+                vacioTitulo = "No hay solicitudes",
+                vacioMensaje = "Cuando un productor publique una, aparecerá acá."
+            )
+        }
+    }
+}
+
+/**
+ * Lista reutilizable para las dos pestañas: mientras la API responde muestra
+ * el indicador, si falla ofrece reintentar y si no hay datos explica el vacío.
+ */
+@Composable
+private fun ListadoSolicitudes(
+    cargando: Boolean,
+    error: String?,
+    solicitudes: List<Solicitud>,
+    alReintentar: () -> Unit,
+    alVerDetalle: (Solicitud) -> Unit,
+    vacioTitulo: String,
+    vacioMensaje: String
+) {
+    when {
+        cargando -> IndicadorCarga()
+        error != null -> ErrorConexion(error, alReintentar)
+        solicitudes.isEmpty() -> EstadoVacio(vacioTitulo, vacioMensaje)
+        else -> LazyColumn(
             contentPadding = PaddingValues(horizontal = 24.dp, vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(ordenadas, key = { it.id }) { solicitud ->
+            items(solicitudes, key = { it.id }) { solicitud ->
                 TarjetaSolicitud(
                     solicitud = solicitud,
                     alTocar = { alVerDetalle(solicitud) }
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun IndicadorCarga() {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator(color = AzulAccion)
+    }
+}
+
+@Composable
+private fun ErrorConexion(mensaje: String, alReintentar: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = mensaje,
+            color = TextoSecundario,
+            fontSize = 13.sp,
+            lineHeight = 19.sp,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = alReintentar,
+            shape = RoundedCornerShape(10.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = AzulAccion,
+                contentColor = Blanco
+            )
+        ) {
+            Text(text = "Reintentar", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
         }
     }
 }

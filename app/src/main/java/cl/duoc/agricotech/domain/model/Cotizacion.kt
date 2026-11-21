@@ -6,8 +6,10 @@ package cl.duoc.agricotech.domain.model
  * precio, distancia, calificación y especialidad.
  */
 data class Cotizacion(
+    val id: Int = 0,
     val idSolicitud: Int,
     val aplicador: String,
+    val aplicadorCorreo: String = "",
     val distanciaKm: Int,
     val calificacion: Double,
     val especialidad: String,

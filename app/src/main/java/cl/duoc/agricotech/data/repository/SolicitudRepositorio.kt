@@ -1,75 +1,59 @@
 package cl.duoc.agricotech.data.repository
 
+import cl.duoc.agricotech.data.remote.RetrofitCliente
+import cl.duoc.agricotech.data.remote.aDominio
+import cl.duoc.agricotech.data.remote.ejecutarLlamada
 import cl.duoc.agricotech.domain.model.Solicitud
-import cl.duoc.agricotech.domain.model.TipoProducto
-import cl.duoc.agricotech.domain.model.Turno
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 /**
- * Solicitudes del MVP con datos ficticios (el caso exige datos sintéticos).
- * Vive en memoria y expone un Flow: cuando el productor publica una,
- * el home del aplicador se entera sin recargar.
+ * Solicitudes respaldadas por la API de Xano.
+ *
+ * La lista se guarda en un StateFlow para que las pantallas se enteren de los
+ * cambios sin volver a consultar en cada navegación, y las funciones `suspend`
+ * son las que hablan con el servidor.
  */
 object SolicitudRepositorio {
 
-    private val _solicitudes = MutableStateFlow(solicitudesIniciales())
+    private const val ESTADO_ADJUDICADA = "ADJUDICADA"
+
+    private val api = RetrofitCliente.api
+
+    private val _solicitudes = MutableStateFlow<List<Solicitud>>(emptyList())
     val solicitudes: StateFlow<List<Solicitud>> = _solicitudes.asStateFlow()
 
+    // Fotos de la cámara: se quedan en el teléfono, la API guarda el resto de la solicitud
+    private val fotosPorSolicitud = mutableMapOf<Int, List<String>>()
+
+    /** GET /solicitud: reemplaza la caché con lo publicado en el servidor. */
+    suspend fun sincronizar(): Result<List<Solicitud>> = ejecutarLlamada {
+        val remotas = api.listarSolicitudes()
+            .filterNot { it.estado.equals(ESTADO_ADJUDICADA, ignoreCase = true) }
+            .map { dto -> dto.aDominio(fotosPorSolicitud[dto.id].orEmpty()) }
+        _solicitudes.value = remotas
+        remotas
+    }
+
+    /** GET /solicitud/{id}: trae el detalle y lo deja en la caché. */
+    suspend fun obtener(id: Int): Result<Solicitud> = ejecutarLlamada {
+        val dto = api.obtenerSolicitud(id)
+        val solicitud = dto.aDominio(fotosPorSolicitud[dto.id].orEmpty())
+        _solicitudes.update { actuales -> actuales.filterNot { it.id == id } + solicitud }
+        solicitud
+    }
+
+    /** Lectura de la caché: al llegar al detalle la lista del home ya está cargada. */
     fun obtenerSolicitud(id: Int): Solicitud? =
         _solicitudes.value.firstOrNull { it.id == id }
 
+    /** Alta en la caché para que la lista se actualice apenas se publica. */
     fun agregar(solicitud: Solicitud) {
+        if (solicitud.fotos.isNotEmpty()) fotosPorSolicitud[solicitud.id] = solicitud.fotos
         _solicitudes.update { actuales -> actuales + solicitud }
     }
 
-    // Id correlativo para la solicitud que se acaba de publicar
     fun siguienteId(): Int = (_solicitudes.value.maxOfOrNull { it.id } ?: 0) + 1
-
-    private fun solicitudesIniciales(): List<Solicitud> = listOf(
-        Solicitud(
-            id = 1,
-            parcela = "Parcela 12 ha · Paltos",
-            cultivo = "Paltos",
-            comuna = "Rancagua",
-            distanciaKm = 8,
-            hectareas = 12,
-            tipoProducto = TipoProducto.LIQUIDO,
-            turno = Turno.DIURNO,
-            aguaDisponible = true,
-            obstaculos = "Cercos perimetrales y una línea de riego en el borde norte.",
-            calificacionProductor = 4.8,
-            trabajosPublicados = 24
-        ),
-        Solicitud(
-            id = 2,
-            parcela = "Fundo El Roble · Trigo",
-            cultivo = "Trigo",
-            comuna = "San Vicente",
-            distanciaKm = 14,
-            hectareas = 30,
-            tipoProducto = TipoProducto.SOLIDO,
-            turno = Turno.NOCTURNO,
-            aguaDisponible = false,
-            obstaculos = "Tendido eléctrico bajo y camino de tierra en el acceso.",
-            calificacionProductor = 4.5,
-            trabajosPublicados = 11
-        ),
-        Solicitud(
-            id = 3,
-            parcela = "Parcela 5 ha · Cerezos",
-            cultivo = "Cerezos",
-            comuna = "Requínoa",
-            distanciaKm = 21,
-            hectareas = 5,
-            tipoProducto = TipoProducto.LIQUIDO,
-            turno = Turno.DIURNO,
-            aguaDisponible = true,
-            obstaculos = "Sin obstáculos relevantes. Acceso por camino interior.",
-            calificacionProductor = 4.9,
-            trabajosPublicados = 37
-        )
-    )
 }
