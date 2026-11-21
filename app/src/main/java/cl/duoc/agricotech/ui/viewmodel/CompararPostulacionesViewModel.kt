@@ -6,6 +6,7 @@ import cl.duoc.agricotech.data.repository.CotizacionRepositorio
 import cl.duoc.agricotech.data.repository.SolicitudRepositorio
 import cl.duoc.agricotech.domain.model.Cotizacion
 import cl.duoc.agricotech.domain.model.Solicitud
+import cl.duoc.agricotech.domain.orden.ordenarPropuestas
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,7 +36,7 @@ class CompararPostulacionesViewModel : ViewModel() {
 
         _uiState.value = CompararUiState(
             solicitud = solicitud,
-            propuestas = ordenar(propuestas, solicitud?.cultivo.orEmpty()),
+            propuestas = ordenarPropuestas(propuestas, solicitud?.cultivo.orEmpty()),
             aceptada = CotizacionRepositorio.aceptadaDe(id)
         )
     }
@@ -71,16 +72,4 @@ class CompararPostulacionesViewModel : ViewModel() {
         if (solicitudId == 0) return
         cargar(solicitudId)
     }
-
-    /**
-     * Criterio del documento (RNF-04): primero cercanía, después puntaje
-     * y por último la especialidad en el cultivo. Sin descartes rígidos:
-     * todas las propuestas se muestran, solo se ordenan.
-     */
-    private fun ordenar(propuestas: List<Cotizacion>, cultivo: String): List<Cotizacion> =
-        propuestas.sortedWith(
-            compareBy<Cotizacion> { it.distanciaKm }
-                .thenByDescending { it.calificacion }
-                .thenByDescending { it.especialidad.equals(cultivo, ignoreCase = true) }
-        )
 }
