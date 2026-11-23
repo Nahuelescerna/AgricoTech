@@ -16,3 +16,7 @@ local.properties
 
 # Carpeta generada por el compilador de Kotlin
 .kotlin/
+
+# Firma del APK: credenciales que no deben subirse al repositorio
+/keys/
+/keystore.properties

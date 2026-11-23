@@ -1,8 +1,16 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serializacion)
     alias(libs.plugins.ksp)
+}
+
+// Credenciales de firma: viven en keystore.properties, que está en .gitignore
+val archivoKeystore = rootProject.file("keystore.properties")
+val clavesKeystore = Properties().apply {
+    if (archivoKeystore.exists()) archivoKeystore.inputStream().use { load(it) }
 }
 
 android {
@@ -27,6 +35,30 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+
+    signingConfigs {
+        create("release") {
+            if (archivoKeystore.exists()) {
+                storeFile = rootProject.file(clavesKeystore.getProperty("storeFile"))
+                storePassword = clavesKeystore.getProperty("storePassword")
+                keyAlias = clavesKeystore.getProperty("keyAlias")
+                keyPassword = clavesKeystore.getProperty("keyPassword")
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            // R8 queda apagado en el MVP: menos riesgo de que falle la demo por reglas
+            isMinifyEnabled = false
+            isShrinkResources = false
+            signingConfig = if (archivoKeystore.exists()) {
+                signingConfigs.getByName("release")
+            } else {
+                null
+            }
+        }
     }
 }
 

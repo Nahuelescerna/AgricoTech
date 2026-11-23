@@ -125,6 +125,22 @@ El APK queda en `app/build/outputs/apk/debug/app-debug.apk`.
 
 Para usar las funciones de ubicación, el emulador debe tener una ubicación configurada; para la cámara, una cámara virtual o un teléfono físico.
 
+### APK firmado (release)
+
+```bash
+JAVA_HOME=/ruta/al/jbr ./gradlew :app:assembleRelease
+```
+
+La firma usa el keystore declarado en `keystore.properties` (raíz del proyecto). Ese archivo y la carpeta `keys/` están excluidos del repositorio, porque contienen la clave privada. El APK queda en:
+
+```
+app/build/outputs/apk/release/app-release.apk
+```
+
+> El keystore y `keystore.properties` deben respaldarse aparte: sin ellos no se pueden publicar actualizaciones con la misma firma.
+
+R8 está desactivado en el build release para el MVP, así el APK se comporta igual que la versión de depuración.
+
 ---
 
 ## Estructura del proyecto
